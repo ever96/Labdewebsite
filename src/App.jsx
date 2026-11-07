@@ -1,1394 +1,629 @@
-
-import React, { useEffect, useState } from "react";
+// LabDE · Laboratorio de Desarrollo Económico — sitio en un solo componente (estilos incluidos).
+// Paleta negro, gris y blanco. Fondo animado: una red de partículas que se conectan y difunden capacidades (la idea del espacio de productos).
+import React, { useEffect, useRef, useState } from "react";
 import {
-  ArrowDown,
-  ArrowRight,
-  ArrowUpRight,
-  Atom,
-  BrainCircuit,
-  Menu,
-  X,
-  Dna,
-  Network,
-  Microscope,
-  Globe2,
-  GitBranch,
-  Mail,
-  FlaskConical,
-  Cpu,
-  Layers3,
+  ArrowDown, ArrowRight, ArrowUp, ArrowUpRight, BrainCircuit, Check, Cpu, FlaskConical, Lightbulb, Mail, Menu, Network, Orbit, Sparkles, Telescope, X,
 } from "lucide-react";
 
-const researchAreas = [
-  {
-    number: "01",
-    icon: BrainCircuit,
-    title: "Artificial intelligence",
-    description:
-      "Developing intelligent systems for reasoning, scientific discovery, and complex problem solving.",
-    tags: ["Machine learning", "AI systems", "Agents"],
-  },
-  {
-    number: "02",
-    icon: Dna,
-    title: "Computational biology",
-    description:
-      "Applying computational methods to molecular interactions, biological systems, and drug discovery.",
-    tags: ["Bioinformatics", "Molecular modeling", "Drug discovery"],
-  },
-  {
-    number: "03",
-    icon: Atom,
-    title: "Complex systems",
-    description:
-      "Exploring how interactions between individual components give rise to emergent behavior.",
-    tags: ["Simulation", "Mathematics", "Networks"],
-  },
-  {
-    number: "04",
-    icon: Network,
-    title: "Economics & society",
-    description:
-      "Building quantitative frameworks for understanding markets, industries, and public policy.",
-    tags: ["Economic modeling", "Data science", "Policy"],
-  },
+// TAPE: en producción vive en el mismo dominio, en /tape (vercel.json la trae del proyecto tape-saas); en desarrollo, en el puerto 5173.
+const TAPE_URL = import.meta.env.VITE_TAPE_URL || (import.meta.env.PROD ? "/tape/" : "http://127.0.0.1:5173/");
+// Reemplazar por las direcciones oficiales antes de publicar.
+const CONTACTO = { general: "hola@labde.org", investigacion: "investigacion@labde.org" };
+
+const COMO = [
+  { icono: Network, titulo: "Complejidad", texto: "Vemos la economía como una red de capacidades: qué sabe hacer cada lugar y qué tiene cerca de poder hacer." },
+  { icono: Cpu, titulo: "Computación", texto: "Procesamos datos de comercio, producción, empleo y territorio a escala, con métodos reproducibles." },
+  { icono: Lightbulb, titulo: "Creatividad", texto: "Diseñamos herramientas nuevas para preguntas que el desarrollo se hace desde hace décadas." },
+  { icono: BrainCircuit, titulo: "Inteligencia artificial", texto: "Modelos que conversan con los datos, para que cualquiera pueda preguntar y entender." },
+  { icono: Telescope, titulo: "Apertura intelectual", texto: "Ideas de distintas escuelas y disciplinas, sin dogmas, y resultados abiertos a la crítica." },
+  { icono: FlaskConical, titulo: "Investigación teórica y aplicada", texto: "De la teoría del crecimiento y la complejidad económica a software que se usa todos los días." },
 ];
 
-const models = [
-  {
-    id: "M01",
-    name: "Molecular Intelligence",
-    category: "Biology",
-    status: "In development",
-    description:
-      "A computational research direction exploring molecular structure, interactions, and candidate prioritization.",
-    icon: Dna,
-  },
-  {
-    id: "M02",
-    name: "Scientific Intelligence",
-    category: "AI",
-    status: "Research direction",
-    description:
-      "Investigating AI systems that connect scientific literature, computational tools, and structured reasoning.",
-    icon: BrainCircuit,
-  },
-  {
-    id: "M03",
-    name: "Economic Intelligence",
-    category: "Economics",
-    status: "Research direction",
-    description:
-      "Exploring data-driven models for economic analysis, industry research, and decision support.",
-    icon: Network,
-  },
+const PARA_QUE = [
+  "Aumentar el nivel de vida", "Bienestar", "Transformación estructural", "Aumentar la productividad", "Calidad del empleo",
+  "Mejores ingresos", "Disminuir la pobreza", "Generar y atraer inversiones", "Aprendizaje",
 ];
 
-const articles = [
-  {
-    category: "RESEARCH NOTES",
-    date: "01",
-    title: "Can AI become a tool for scientific discovery?",
-    excerpt:
-      "Exploring the relationship between machine learning, scientific methods, and the production of new knowledge.",
-    icon: BrainCircuit,
-  },
-  {
-    category: "COMPUTATIONAL BIOLOGY",
-    date: "02",
-    title: "From molecular structure to biological function",
-    excerpt:
-      "Why understanding molecular interactions requires more than predicting a single static structure.",
-    icon: Microscope,
-  },
-  {
-    category: "ECONOMICS & TECHNOLOGY",
-    date: "03",
-    title: "Building technological capacity in Latin America",
-    excerpt:
-      "On research infrastructure, local talent, open technologies, and the economics of innovation.",
-    icon: Globe2,
-  },
+const METODO = [
+  { n: "01", t: "Una pregunta real", d: "¿Qué puede producir este distrito? ¿Dónde rinde más una subestación? Empezamos por lo que alguien necesita decidir." },
+  { n: "02", t: "Teoría y datos", d: "Complejidad económica, capacidades y brechas, medidas con datos oficiales y comparadas con quienes ya producen." },
+  { n: "03", t: "Software que se usa", d: "Lo convertimos en herramientas simples, con IA, que muestran la evidencia y sus límites." },
+];
+
+const DEMO = [
+  { q: "¿Dónde instalar una fábrica de envases plásticos?", a: "134 distritos están listos; 82 todavía no la tienen.", k: [["Listos", "134"], ["Falta una cosa", "74"], ["Faltan varias", "54"]], semilla: 3 },
+  { q: "¿Qué puede desarrollar San Alberto?", a: "10 actividades nuevas podrían instalarse con lo que ya tiene.", k: [["Actividades nuevas", "10"], ["Ya produce", "10"], ["Lo que más destraba", "Educación"]], semilla: 7 },
+  { q: "¿Dónde invertir en energía para abrir actividades?", a: "Abriría actividades en 76 distritos: 91 combinaciones nuevas.", k: [["Distritos", "76"], ["Combinaciones", "91"], ["Ente", "ANDE"]], semilla: 11 },
 ];
 
 const css = `
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
-
-:root {
-  --bg: #fff;
-  --text: #111;
-  --muted: #707070;
-  --line: #e8e8e8;
-  --soft: #f7f7f5;
-  --width: 1320px;
-}
-
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+:root { --negro: #0d0d0d; --tinta: #0d0d0d; --gris: #6b6b6b; --gris2: #8e8e8e; --linea: #e5e5e5; --suave: #f7f7f7; --blanco: #ffffff; --ancho: 1240px; }
 * { box-sizing: border-box; }
-
-html {
-  scroll-behavior: smooth;
-  scroll-padding-top: 88px;
-}
-
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  -webkit-font-smoothing: antialiased;
-}
-
-button, input { font: inherit; }
-button, a { -webkit-tap-highlight-color: transparent; }
+html { scroll-behavior: smooth; scroll-padding-top: 76px; }
+body { margin: 0; background: var(--blanco); color: var(--tinta); font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
 a { color: inherit; text-decoration: none; }
-button { color: inherit; cursor: pointer; }
-::selection { color: white; background: #171717; }
-
-.lab-shell { min-height: 100vh; overflow: clip; }
-.lab-container {
-  width: min(var(--width), calc(100% - 100px));
-  margin: auto;
-}
-
-.lab-header {
-  height: 76px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 50px;
-  background: rgba(255,255,255,.94);
-  border-bottom: 1px solid rgba(0,0,0,.065);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  backdrop-filter: blur(18px);
-  transition: box-shadow .3s ease;
-}
-
-.lab-header.scrolled {
-  box-shadow: 0 5px 25px rgba(0,0,0,.035);
-}
-
-.lab-brand {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  line-height: .76;
-  flex-shrink: 0;
-}
-
-.lab-brand-top {
-  font-size: 30px;
-  font-weight: 700;
-  letter-spacing: -2.7px;
-}
-
-.lab-brand-bottom {
-  margin-top: 7px;
-  padding-left: 5px;
-  color: #999;
-  font-size: 20px;
-  font-weight: 400;
-  letter-spacing: 5px;
-}
-
-.lab-nav { display: flex; align-items: center; gap: 31px; }
-
-.lab-nav a {
-  color: #4e4e4e;
-  font-size: 12px;
-  transition: color .2s;
-}
-
-.lab-nav a:hover { color: #aaa; }
-
-.lab-nav-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  border: 1px solid #d8d8d8;
-  border-radius: 100px;
-  padding: 11px 16px;
-  font-size: 12px;
-  transition: background .25s, color .25s, border-color .25s;
-}
-
-.lab-nav-cta:hover {
-  background: #111;
-  color: white;
-  border-color: #111;
-}
-
-.lab-mobile-toggle {
-  display: none;
-  border: 0;
-  background: transparent;
-  padding: 8px;
-}
-
-.lab-mobile-panel {
-  position: absolute;
-  top: 67px;
-  left: 0;
-  right: 0;
-  display: flex;
-  flex-direction: column;
-  padding: 12px 22px 22px;
-  background: white;
-  border-bottom: 1px solid var(--line);
-  box-shadow: 0 15px 25px rgba(0,0,0,.05);
-  animation: lab-enter .25s ease both;
-}
-
-.lab-mobile-panel a {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 17px 0;
-  border-bottom: 1px solid #eee;
-  font-size: 14px;
-}
-
-.lab-hero {
-  padding: 106px 0 91px;
-  display: grid;
-  grid-template-columns: 1.12fr .88fr;
-  align-items: center;
-  gap: 70px;
-}
-
-.lab-eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  color: #737373;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: .19em;
-  text-transform: uppercase;
-}
-
-.lab-eyebrow::before {
-  content: '';
-  width: 25px;
-  height: 1px;
-  background: #a0a0a0;
-  flex-shrink: 0;
-}
-
-.lab-hero h1 {
-  margin: 31px 0 27px;
-  font-size: clamp(56px, 6.2vw, 88px);
-  font-weight: 500;
-  line-height: .99;
-  letter-spacing: -.078em;
-}
-
-.lab-muted { color: #a3a3a3; }
-
-.lab-lead {
-  max-width: 510px;
-  color: #656565;
-  font-size: 15px;
-  line-height: 1.95;
-}
-
-.lab-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 31px;
-}
-
-.lab-btn {
-  min-height: 46px;
-  padding: 0 19px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  border: 1px solid #151515;
-  border-radius: 100px;
-  background: #151515;
-  color: white;
-  font-size: 12px;
-  transition: transform .25s, background .25s, color .25s;
-}
-
-.lab-btn:hover {
-  transform: translateY(-2px);
-  background: #353535;
-}
-
-.lab-btn.secondary {
-  background: white;
-  color: #111;
-  border-color: #dedede;
-}
-
-.lab-btn.secondary:hover { border-color: #111; background: #fafafa; }
-
-.lab-hero-copy { animation: lab-enter .9s both; }
-
-.lab-hero-art {
-  position: relative;
-  min-height: 420px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #080808;
-  overflow: hidden;
-  isolation: isolate;
-  animation: lab-enter .9s .12s both;
-}
-
-.lab-hero-art::before,
-.lab-hero-art::after {
-  content: '';
-  position: absolute;
-  border: 1px solid rgba(255,255,255,.15);
-  border-radius: 50%;
-}
-
-.lab-hero-art::before {
-  width: 330px;
-  height: 330px;
-  animation: lab-orbit 36s linear infinite;
-}
-
-.lab-hero-art::after {
-  width: 230px;
-  height: 230px;
-  border-color: rgba(255,255,255,.12);
-  animation: lab-orbit 26s linear infinite reverse;
-}
-
-.lab-art-grid {
-  position: absolute;
-  inset: 0;
-  opacity: .12;
-  background-image:
-    linear-gradient(rgba(255,255,255,.17) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.17) 1px, transparent 1px);
-  background-size: 38px 38px;
-  mask-image: radial-gradient(ellipse at center, black 5%, transparent 75%);
-}
-
-.lab-art-center {
-  position: relative;
-  z-index: 2;
-  width: 135px;
-  height: 135px;
-  display: grid;
-  place-items: center;
-  color: white;
-  background: #101010;
-  border: 1px solid #555;
-  border-radius: 50%;
-  box-shadow: 0 0 90px rgba(255,255,255,.08);
-  animation: lab-float 6s ease-in-out infinite;
-}
-
-.lab-art-center svg { width: 45px; height: 45px; stroke-width: 1; }
-
-.lab-art-node {
-  position: absolute;
-  z-index: 3;
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  border: 1px solid #555;
-  border-radius: 50%;
-  background: #171717;
-  color: #ddd;
-}
-
-.lab-art-node svg { width: 18px; height: 18px; stroke-width: 1.2; }
-.lab-node-one { top: 21%; left: 24%; }
-.lab-node-two { top: 26%; right: 19%; }
-.lab-node-three { bottom: 19%; left: 27%; }
-.lab-node-four { bottom: 22%; right: 23%; }
-
-.lab-art-caption {
-  position: absolute;
-  bottom: 21px;
-  left: 23px;
-  color: #aaa;
-  font-size: 9px;
-  letter-spacing: .17em;
-  text-transform: uppercase;
-}
-
-.lab-scroll {
-  position: absolute;
-  right: 22px;
-  bottom: 19px;
-  color: #aaa;
-  animation: lab-bob 2s ease-in-out infinite;
-}
-
-.lab-marquee { border-block: 1px solid var(--line); }
-
-.lab-marquee-inner {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  padding: 24px 0;
-}
-
-.lab-marquee-item {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  color: #626262;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: .13em;
-  text-transform: uppercase;
-}
-
-.lab-marquee-item:not(:first-child) {
-  padding-left: 30px;
-  border-left: 1px solid var(--line);
-}
-
-.lab-marquee-item svg { width: 16px; height: 16px; color: #888; }
-
-.lab-section { padding: 112px 0; scroll-margin-top: 75px; }
-
-.lab-section-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: end;
-  gap: 40px;
-  margin-bottom: 43px;
-}
-
-.lab-section h2 {
-  margin: 22px 0 0;
-  font-size: clamp(38px, 4.6vw, 62px);
-  font-weight: 500;
-  line-height: 1.07;
-  letter-spacing: -.065em;
-}
-
-.lab-section-intro {
-  max-width: 420px;
-  margin: 0 0 4px;
-  color: #707070;
-  font-size: 13px;
-  line-height: 1.9;
-}
-
-.lab-text-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  border-bottom: 1px solid #bbb;
-  padding-bottom: 5px;
-  transition: gap .25s, border-color .25s;
-}
-
-.lab-text-link:hover { gap: 13px; border-color: #111; }
-
-.lab-research-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  border-left: 1px solid var(--line);
-  border-top: 1px solid var(--line);
-}
-
-.lab-research-card {
-  min-height: 315px;
-  padding: 30px;
-  border-right: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  transition: background .35s;
-}
-
-.lab-research-card:hover { background: #fafaf9; }
-
-.lab-card-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 47px;
-}
-
-.lab-number { color: #aaa; font-size: 11px; }
-
-.lab-card-icon {
-  width: 37px;
-  height: 37px;
-  display: grid;
-  place-items: center;
-  border: 1px solid #e4e4e4;
-  border-radius: 50%;
-  transition: background .3s, color .3s, transform .3s;
-}
-
-.lab-card-icon svg { width: 17px; height: 17px; stroke-width: 1.4; }
-
-.lab-research-card:hover .lab-card-icon {
-  background: #111;
-  color: white;
-  transform: rotate(-8deg);
-}
-
-.lab-research-card h3 {
-  margin: 0 0 12px;
-  font-size: 23px;
-  font-weight: 500;
-  letter-spacing: -.045em;
-}
-
-.lab-research-card p {
-  max-width: 470px;
-  margin: 0;
-  color: #737373;
-  font-size: 12px;
-  line-height: 1.9;
-}
-
-.lab-tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 23px; }
-
-.lab-tag {
-  padding: 7px 10px;
-  border: 1px solid var(--line);
-  border-radius: 100px;
-  color: #777;
-  font-size: 9px;
-}
-
-.lab-models { background: var(--soft); }
-
-.lab-model-list { border-top: 1px solid #dededb; }
-
-.lab-model-row {
-  display: grid;
-  grid-template-columns: 55px 1fr 1.1fr 160px 30px;
-  align-items: center;
-  gap: 25px;
-  padding: 28px 0;
-  border-bottom: 1px solid #dededb;
-  transition: padding .3s, background .3s;
-}
-
-.lab-model-row:hover {
-  padding-left: 12px;
-  padding-right: 12px;
-  background: rgba(255,255,255,.65);
-}
-
-.lab-model-index { color: #999; font-size: 10px; }
-
-.lab-model-title { display: flex; align-items: center; gap: 15px; }
-
-.lab-model-symbol {
-  width: 40px;
-  height: 40px;
-  display: grid;
-  place-items: center;
-  background: white;
-  border: 1px solid #e6e6e6;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.lab-model-symbol svg { width: 19px; height: 19px; stroke-width: 1.4; }
-
-.lab-model-title h3 {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -.025em;
-}
-
-.lab-model-title small {
-  display: block;
-  margin-top: 5px;
-  color: #929292;
-  font-size: 10px;
-}
-
-.lab-model-desc { color: #727272; font-size: 11px; line-height: 1.8; }
-
-.lab-status {
-  justify-self: start;
-  border: 1px solid #dededb;
-  border-radius: 100px;
-  padding: 7px 10px;
-  color: #686868;
-  font-size: 9px;
-  white-space: nowrap;
-}
-
-.lab-model-arrow { color: #777; transition: transform .25s; }
-.lab-model-row:hover .lab-model-arrow { transform: translate(3px,-3px); color: #111; }
-
-.lab-model-note { margin-top: 20px; color: #8a8a8a; font-size: 10px; line-height: 1.8; }
-
-.lab-statement { background: #080808; color: white; }
-
-.lab-statement-inner {
-  display: grid;
-  grid-template-columns: 1.15fr .85fr;
-  gap: 90px;
-  padding: 100px 0;
-  align-items: end;
-}
-
-.lab-statement .lab-eyebrow { color: #aaa; }
-
-.lab-statement h2 {
-  margin: 25px 0 0;
-  font-size: clamp(44px, 5.7vw, 76px);
-  font-weight: 500;
-  line-height: 1.02;
-  letter-spacing: -.07em;
-}
-
-.lab-statement h2 span { color: #777; }
-
-.lab-statement-copy { color: #aaa; font-size: 13px; line-height: 2; }
-.lab-statement-copy p { margin: 0 0 25px; }
-.lab-statement .lab-text-link { color: white; border-color: #666; }
-
-.lab-blog-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 20px; }
-
-.lab-blog-card { display: flex; flex-direction: column; min-width: 0; }
-
-.lab-blog-visual {
-  height: 210px;
-  position: relative;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  background: #f2f2f0;
-  transition: background .35s;
-}
-
-.lab-blog-card:hover .lab-blog-visual { background: #e9e9e6; }
-
-.lab-blog-visual::before, .lab-blog-visual::after {
-  content: '';
-  position: absolute;
-  width: 160px;
-  height: 160px;
-  border: 1px solid #d9d9d5;
-  border-radius: 50%;
-}
-
-.lab-blog-visual::after { width: 110px; height: 110px; }
-
-.lab-blog-glyph {
-  position: relative;
-  z-index: 1;
-  width: 65px;
-  height: 65px;
-  display: grid;
-  place-items: center;
-  border: 1px solid #bdbdb7;
-  border-radius: 50%;
-  background: #f2f2f0;
-}
-
-.lab-blog-glyph svg {
-  width: 25px;
-  height: 25px;
-  stroke-width: 1.2;
-  transition: transform .45s;
-}
-
-.lab-blog-card:hover .lab-blog-glyph svg { transform: scale(1.12) rotate(-5deg); }
-
-.lab-blog-meta {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  margin: 22px 0 13px;
-  color: #858585;
-  font-size: 9px;
-  letter-spacing: .1em;
-}
-
-.lab-blog-card h3 {
-  margin: 0;
-  font-size: 21px;
-  line-height: 1.35;
-  font-weight: 600;
-  letter-spacing: -.045em;
-  transition: color .25s;
-}
-
-.lab-blog-card:hover h3 { color: #666; }
-
-.lab-blog-card p {
-  margin: 12px 0 22px;
-  color: #747474;
-  font-size: 12px;
-  line-height: 1.85;
-}
-
-.lab-blog-card .lab-text-link { margin-top: auto; align-self: start; }
-
-.lab-blog-note { margin-top: 30px; color: #999; font-size: 10px; line-height: 1.8; }
-
-.lab-about { border-top: 1px solid var(--line); background: #fafaf9; }
-
-.lab-about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 90px; }
-
-.lab-about-grid h2 {
-  margin: 22px 0 0;
-  font-size: clamp(40px, 4.6vw, 62px);
-  font-weight: 500;
-  line-height: 1.07;
-  letter-spacing: -.065em;
-}
-
-.lab-about-copy { padding-top: 10px; }
-
-.lab-about-copy > p {
-  margin: 0 0 20px;
-  color: #666;
-  font-size: 13px;
-  line-height: 2;
-}
-
-.lab-principles { margin-top: 34px; border-top: 1px solid #e5e5e2; }
-
-.lab-principle {
-  display: grid;
-  grid-template-columns: 40px 1fr;
-  gap: 15px;
-  padding: 19px 0;
-  border-bottom: 1px solid #e5e5e2;
-}
-
-.lab-principle > span { color: #999; font-size: 10px; }
-
-.lab-principle h3 { margin: 0 0 5px; font-size: 13px; font-weight: 600; }
-
-.lab-principle p { margin: 0; color: #7b7b7b; font-size: 11px; line-height: 1.8; }
-
-.lab-contact { padding: 95px 0; }
-
-.lab-contact-inner {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: center;
-  gap: 70px;
-  padding: 48px;
-  background: var(--soft);
-}
-
-.lab-contact h2 {
-  margin: 20px 0;
-  font-size: clamp(38px, 4.5vw, 57px);
-  font-weight: 500;
-  line-height: 1.06;
-  letter-spacing: -.065em;
-}
-
-.lab-contact-copy { color: #707070; font-size: 12px; line-height: 1.9; }
-
-.lab-contact-links { display: flex; flex-direction: column; margin-top: 25px; }
-
-.lab-contact-link {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 18px 0;
-  border-bottom: 1px solid #e1e1de;
-  font-size: 12px;
-  transition: padding .25s;
-}
-
-.lab-contact-link:hover { padding-left: 7px; }
-.lab-contact-link svg { width: 16px; height: 16px; }
-
-.lab-footer { border-top: 1px solid var(--line); }
-
-.lab-footer-main {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 30px;
-  padding: 34px 0;
-}
-
-.lab-footer-brand { display: flex; align-items: center; gap: 22px; }
-.lab-footer-brand p { color: #777; font-size: 10px; line-height: 1.8; }
-
-.lab-footer-nav { display: flex; flex-wrap: wrap; gap: 24px; }
-.lab-footer-nav a { color: #666; font-size: 10px; transition: color .2s; }
-.lab-footer-nav a:hover { color: black; }
-
-.lab-footer-bottom {
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 17px 0;
-  border-top: 1px solid var(--line);
-  color: #929292;
-  font-size: 9px;
-}
-
-.lab-reveal {
-  opacity: 0;
-  transform: translateY(24px);
-  transition: opacity .75s cubic-bezier(.2,.65,.3,1), transform .75s cubic-bezier(.2,.65,.3,1);
-}
-
-.lab-reveal.visible { opacity: 1; transform: translateY(0); }
-.lab-delay-1 { transition-delay: .09s; }
-.lab-delay-2 { transition-delay: .18s; }
-.lab-delay-3 { transition-delay: .27s; }
-
-@keyframes lab-enter {
-  from { opacity: 0; transform: translateY(18px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes lab-orbit { to { transform: rotate(360deg); } }
-
-@keyframes lab-float {
-  0%,100% { transform: translateY(0); }
-  50% { transform: translateY(-9px); }
-}
-
-@keyframes lab-bob {
-  0%,100% { transform: translateY(0); }
-  50% { transform: translateY(5px); }
-}
-
-@media (max-width: 1050px) {
-  .lab-header { padding: 0 30px; }
-  .lab-container { width: calc(100% - 60px); }
-  .lab-nav { gap: 19px; }
-  .lab-hero { gap: 35px; padding-top: 80px; }
-  .lab-hero-art { min-height: 360px; }
-  .lab-model-row { grid-template-columns: 35px 1fr 1fr 30px; gap: 17px; }
-  .lab-status { display: none; }
-  .lab-statement-inner, .lab-about-grid { gap: 50px; }
-  .lab-contact-inner { gap: 40px; padding: 35px; }
+button { font: inherit; color: inherit; }
+::selection { background: var(--negro); color: var(--blanco); }
+:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; border-radius: 6px; }
+.l-cont { width: min(var(--ancho), calc(100% - 48px)); margin: 0 auto; }
+
+/* Cabecera */
+.l-cab { position: fixed; inset: 0 0 auto; z-index: 50; height: 68px; display: flex; align-items: center; transition: background .3s, color .3s, box-shadow .3s; color: var(--blanco); }
+.l-cab.clara { background: rgba(255,255,255,.82); backdrop-filter: saturate(1.6) blur(14px); -webkit-backdrop-filter: saturate(1.6) blur(14px); color: var(--tinta); box-shadow: 0 1px 0 var(--linea); }
+.l-cab .l-cont { display: flex; align-items: center; gap: 28px; }
+.l-marca { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -.01em; font-size: 18px; }
+.l-marca i { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; background: currentColor; font-style: normal; }
+.l-marca i b { color: var(--negro); font-size: 12px; letter-spacing: 0; }
+.l-cab.clara .l-marca i b { color: var(--blanco); }
+.l-nav { display: flex; gap: 4px; margin-left: auto; }
+.l-nav a { padding: 8px 12px; border-radius: 999px; font-size: 14px; opacity: .78; transition: opacity .2s, background .2s; }
+.l-nav a:hover { opacity: 1; background: rgba(127,127,127,.14); }
+.l-cta { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 999px; font-size: 14px; font-weight: 500; background: var(--blanco); color: var(--negro); transition: transform .2s, opacity .2s; white-space: nowrap; }
+.l-cab.clara .l-cta { background: var(--negro); color: var(--blanco); }
+.l-cab.oscura { background: rgba(13,13,13,.72); backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px); box-shadow: 0 1px 0 rgba(255,255,255,.08); }
+.l-cta:hover { transform: translateY(-1px); }
+.l-menu-b { display: none; margin-left: auto; width: 40px; height: 40px; border: 0; background: none; border-radius: 10px; cursor: pointer; }
+.l-movil { position: fixed; inset: 68px 0 auto; background: var(--blanco); color: var(--tinta); border-bottom: 1px solid var(--linea); padding: 8px 20px 20px; display: flex; flex-direction: column; z-index: 49; animation: l-baja .2s ease-out; }
+.l-movil a { padding: 14px 4px; border-bottom: 1px solid var(--linea); display: flex; justify-content: space-between; font-size: 17px; }
+.l-movil .l-cta { margin-top: 14px; justify-content: center; background: var(--negro); color: var(--blanco); border: 0; padding: 14px; }
+@keyframes l-baja { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+/* Portada con red de partículas */
+.l-hero { position: relative; min-height: 100vh; min-height: 100svh; background: var(--negro); color: var(--blanco); display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; isolation: isolate; }
+.l-hero canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -2; }
+.l-hero::after { content: ''; position: absolute; inset: 0; z-index: -1; background: radial-gradient(ellipse 70% 60% at 30% 50%, rgba(13,13,13,.86) 0%, rgba(13,13,13,.55) 45%, rgba(13,13,13,0) 75%), linear-gradient(to bottom, rgba(13,13,13,0) 70%, var(--negro)); pointer-events: none; }
+.l-hero > .l-cont { padding: 132px 0 48px; }
+.l-ceja { display: inline-flex; align-items: center; gap: 10px; font-size: 13px; letter-spacing: .02em; color: rgba(255,255,255,.72); border: 1px solid rgba(255,255,255,.18); border-radius: 999px; padding: 6px 14px 6px 8px; backdrop-filter: blur(6px); }
+.l-ceja i { width: 8px; height: 8px; border-radius: 50%; background: var(--blanco); box-shadow: 0 0 0 4px rgba(255,255,255,.15); animation: l-pulso 2.4s infinite; margin-left: 4px; }
+@keyframes l-pulso { 0%, 100% { box-shadow: 0 0 0 3px rgba(255,255,255,.18); } 50% { box-shadow: 0 0 0 7px rgba(255,255,255,0); } }
+.l-hero h1 { font-size: clamp(44px, 6.6vw, 96px); line-height: .98; letter-spacing: -.045em; font-weight: 600; margin: 26px 0 26px; max-width: 13ch; }
+.l-hero h1 span { color: rgba(255,255,255,.42); }
+.l-lead { font-size: clamp(17px, 1.6vw, 21px); line-height: 1.55; color: rgba(255,255,255,.74); max-width: 40ch; margin: 0 0 36px; }
+.l-acciones { display: flex; gap: 12px; flex-wrap: wrap; }
+.l-btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 22px; border-radius: 999px; font-weight: 500; font-size: 15px; transition: transform .2s, background .2s, color .2s; border: 1px solid transparent; }
+.l-btn:hover { transform: translateY(-2px); }
+.l-btn.blanco { background: var(--blanco); color: var(--negro); }
+.l-btn.borde { border-color: rgba(255,255,255,.3); color: var(--blanco); }
+.l-btn.borde:hover { background: rgba(255,255,255,.08); }
+.l-btn.negro { background: var(--negro); color: var(--blanco); }
+.l-btn.borde-n { border-color: var(--linea); }
+.l-btn.borde-n:hover { background: var(--suave); }
+.l-cifras { width: 100%; padding: 0 0 28px; }
+.l-cifras .l-cont { display: flex; justify-content: space-between; align-items: center; gap: 20px; font-size: 13px; color: rgba(255,255,255,.55); }
+.l-cifras span b { color: var(--blanco); font-weight: 500; }
+.l-bajar { display: inline-flex; align-items: center; gap: 8px; } .l-bajar svg { animation: l-flota 2s infinite ease-in-out; }
+@keyframes l-flota { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
+
+/* Cinta de palabras */
+.l-cinta { background: var(--negro); color: var(--blanco); border-top: 1px solid rgba(255,255,255,.1); overflow: hidden; padding: 22px 0; }
+.l-cinta-in { display: flex; gap: 48px; width: max-content; animation: l-corre 38s linear infinite; }
+.l-cinta span { font-size: clamp(22px, 3vw, 34px); font-weight: 500; letter-spacing: -.02em; white-space: nowrap; display: inline-flex; align-items: center; gap: 48px; color: rgba(255,255,255,.82); }
+.l-cinta span::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.35); }
+@keyframes l-corre { to { transform: translateX(-50%); } }
+
+/* Secciones */
+.l-sec { padding: clamp(90px, 12vw, 160px) 0; }
+.l-etq { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--gris); display: flex; align-items: center; gap: 10px; margin-bottom: 26px; }
+.l-etq::before { content: ''; width: 22px; height: 1px; background: currentColor; }
+.l-h2 { font-size: clamp(36px, 5vw, 68px); line-height: 1.02; letter-spacing: -.04em; font-weight: 600; margin: 0; }
+.l-h2 span { color: var(--gris2); }
+.l-intro { font-size: 18px; line-height: 1.6; color: var(--gris); max-width: 44ch; margin: 0; }
+.l-cabeza { display: grid; grid-template-columns: 1.3fr 1fr; gap: 48px; align-items: end; margin-bottom: 64px; }
+
+/* Qué hacemos: frase que se completa al bajar */
+.l-frase { font-size: clamp(32px, 4.6vw, 64px); line-height: 1.12; letter-spacing: -.035em; font-weight: 600; margin: 0; max-width: 20ch; }
+.l-frase span { color: #d4d4d4; transition: color .35s; }
+.l-frase span.on { color: var(--tinta); }
+.l-frase-pie { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 72px; border-top: 1px solid var(--linea); padding-top: 28px; }
+.l-frase-pie div { font-size: 15px; line-height: 1.55; color: var(--gris); }
+.l-frase-pie b { display: block; color: var(--tinta); font-weight: 600; font-size: 16px; margin-bottom: 6px; }
+
+/* Cómo */
+.l-como { background: var(--suave); }
+.l-grilla { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--blanco); border: 1px solid var(--linea); border-radius: 24px; overflow: hidden; }
+.l-tarj { background: var(--blanco); box-shadow: inset -1px -1px 0 var(--linea); padding: 34px 30px 36px; min-height: 280px; display: flex; flex-direction: column; gap: 14px; transition: background .35s, color .35s; position: relative; }
+.l-tarj:hover { background: var(--negro); color: var(--blanco); }
+.l-tarj:hover p, .l-tarj:hover .l-num { color: rgba(255,255,255,.66); }
+.l-tarj:hover .l-ico { background: var(--blanco); color: var(--negro); }
+.l-tarj .l-num { font-size: 13px; color: var(--gris2); font-variant-numeric: tabular-nums; transition: color .35s; }
+.l-ico { width: 46px; height: 46px; border-radius: 14px; background: var(--negro); color: var(--blanco); display: grid; place-items: center; margin-top: auto; transition: background .35s, color .35s; }
+.l-tarj h3 { font-size: 22px; letter-spacing: -.02em; margin: 6px 0 0; font-weight: 600; }
+.l-tarj p { margin: 0; color: var(--gris); line-height: 1.6; font-size: 15px; transition: color .35s; }
+
+/* Para qué */
+.l-paraque { background: var(--negro); color: var(--blanco); position: relative; overflow: hidden; }
+.l-paraque .l-etq { color: rgba(255,255,255,.55); }
+.l-paraque .l-h2 span { color: rgba(255,255,255,.4); }
+.l-paraque .l-intro { color: rgba(255,255,255,.6); }
+.l-lista { border-top: 1px solid rgba(255,255,255,.14); }
+.l-fila { display: grid; grid-template-columns: 80px 1fr auto; align-items: center; gap: 20px; padding: 22px 0; border-bottom: 1px solid rgba(255,255,255,.14); cursor: default; position: relative; }
+.l-fila small { color: rgba(255,255,255,.4); font-size: 14px; font-variant-numeric: tabular-nums; }
+.l-fila b { font-size: clamp(26px, 3.6vw, 48px); font-weight: 500; letter-spacing: -.03em; color: rgba(255,255,255,.5); transition: color .3s, transform .4s cubic-bezier(.2,.8,.2,1); }
+.l-fila svg { opacity: 0; transform: translateX(-10px); transition: opacity .3s, transform .3s; }
+.l-fila:hover b { color: var(--blanco); transform: translateX(10px); }
+.l-fila:hover svg { opacity: 1; transform: none; }
+.l-fila::before { content: ''; position: absolute; left: 0; bottom: -1px; height: 1px; width: 0; background: var(--blanco); transition: width .6s cubic-bezier(.2,.8,.2,1); }
+.l-fila:hover::before { width: 100%; }
+
+/* Frase central */
+.l-manifiesto { text-align: center; }
+.l-manifiesto h2 { font-size: clamp(40px, 6.4vw, 96px); line-height: 1; letter-spacing: -.05em; font-weight: 600; margin: 0 auto; max-width: 15ch; }
+.l-manifiesto h2 span { color: var(--gris2); }
+.l-manifiesto p { font-size: 19px; color: var(--gris); max-width: 46ch; margin: 30px auto 0; line-height: 1.6; }
+
+/* TAPE */
+.l-tape { background: var(--suave); }
+.l-tape-g { display: grid; grid-template-columns: 1fr 1.08fr; gap: 64px; align-items: center; }
+.l-tape-t { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; margin-bottom: 22px; }
+.l-tape-t i { width: 34px; height: 34px; border-radius: 10px; background: var(--negro); color: var(--blanco); display: grid; place-items: center; font-style: normal; font-weight: 800; }
+.l-tape-t small { color: var(--gris); font-weight: 400; }
+.l-feat { list-style: none; padding: 0; margin: 32px 0; display: grid; gap: 14px; }
+.l-feat li { display: grid; grid-template-columns: 26px 1fr; gap: 10px; font-size: 16px; line-height: 1.5; }
+.l-feat li svg { margin-top: 3px; }
+.l-feat li span { color: var(--gris); }
+.l-feat li b { font-weight: 600; color: var(--tinta); }
+.l-num4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--linea); border: 1px solid var(--linea); border-radius: 18px; overflow: hidden; margin: 0 0 32px; }
+.l-num4 div { background: var(--blanco); padding: 16px 14px; }
+.l-num4 b { display: block; font-size: 28px; letter-spacing: -.03em; font-weight: 600; }
+.l-num4 span { font-size: 12.5px; color: var(--gris); line-height: 1.35; display: block; }
+
+/* Demostración tipo chat */
+.l-demo { background: var(--blanco); border: 1px solid var(--linea); border-radius: 24px; box-shadow: 0 30px 80px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.04); overflow: hidden; }
+.l-demo-bar { display: flex; align-items: center; gap: 8px; padding: 14px 16px; border-bottom: 1px solid var(--linea); font-size: 13px; color: var(--gris); }
+.l-demo-bar i { width: 10px; height: 10px; border-radius: 50%; background: var(--linea); }
+.l-demo-bar span { margin-left: 8px; }
+.l-demo-c { padding: 24px 22px 18px; min-height: 430px; display: flex; flex-direction: column; gap: 16px; }
+.l-burb { align-self: flex-end; background: #f1f1f1; border-radius: 20px; padding: 10px 16px; font-size: 15px; max-width: 85%; min-height: 42px; }
+.l-burb .cursor { display: inline-block; width: 2px; height: 1em; background: var(--tinta); vertical-align: -2px; margin-left: 2px; animation: l-parpadeo 1s steps(1) infinite; }
+@keyframes l-parpadeo { 50% { opacity: 0; } }
+.l-resp { display: flex; gap: 12px; opacity: 0; transform: translateY(8px); transition: opacity .45s, transform .45s; }
+.l-resp.on { opacity: 1; transform: none; }
+.l-av { width: 26px; height: 26px; border-radius: 8px; background: var(--negro); color: var(--blanco); display: grid; place-items: center; font-size: 13px; font-weight: 800; flex: none; }
+.l-resp-c { flex: 1; display: flex; flex-direction: column; gap: 12px; font-size: 15px; line-height: 1.5; }
+.l-mini { border: 1px solid var(--linea); border-radius: 16px; padding: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.l-mini-k { display: grid; gap: 8px; align-content: start; }
+.l-mini-k div { background: #f4f4f4; border-radius: 10px; padding: 8px 10px; }
+.l-mini-k div:first-child { background: var(--negro); color: var(--blanco); }
+.l-mini-k span { font-size: 11.5px; opacity: .7; display: block; }
+.l-mini-k b { font-size: 18px; font-weight: 600; }
+.l-puntos { display: grid; grid-template-columns: repeat(14, 1fr); gap: 4px; align-content: center; }
+.l-puntos i { aspect-ratio: 1; border-radius: 50%; background: #e3e3e3; transition: background .5s; }
+.l-puntos i.n { background: var(--negro); } .l-puntos i.g { background: #8e8e8e; } .l-puntos i.v { background: transparent; }
+.l-demo-sig { display: flex; gap: 6px; flex-wrap: wrap; }
+.l-demo-sig span { border: 1px solid var(--linea); border-radius: 999px; padding: 4px 12px; font-size: 13px; color: var(--gris); }
+.l-demo-in { margin: 0 16px 16px; border: 1px solid var(--linea); border-radius: 26px; padding: 10px 10px 10px 18px; display: flex; align-items: center; justify-content: space-between; color: var(--gris2); font-size: 14.5px; box-shadow: 0 4px 16px rgba(0,0,0,.04); }
+.l-demo-in i { width: 32px; height: 32px; border-radius: 50%; background: var(--negro); color: var(--blanco); display: grid; place-items: center; }
+
+/* Método */
+.l-pasos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; counter-reset: p; }
+.l-paso { border-top: 1px solid var(--tinta); padding-top: 22px; }
+.l-paso small { font-size: 13px; color: var(--gris2); font-variant-numeric: tabular-nums; }
+.l-paso h3 { font-size: 24px; letter-spacing: -.02em; margin: 10px 0 10px; font-weight: 600; }
+.l-paso p { color: var(--gris); line-height: 1.6; margin: 0; font-size: 15.5px; }
+
+/* Contacto */
+.l-contacto { background: var(--negro); color: var(--blanco); position: relative; overflow: hidden; isolation: isolate; }
+.l-contacto canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; opacity: .5; }
+.l-contacto .l-etq { color: rgba(255,255,255,.55); }
+.l-contacto-g { display: grid; grid-template-columns: 1.2fr 1fr; gap: 64px; align-items: end; }
+.l-contacto h2 { font-size: clamp(40px, 6vw, 88px); line-height: 1; letter-spacing: -.05em; margin: 0; font-weight: 600; }
+.l-contacto h2 span { color: rgba(255,255,255,.4); }
+.l-enlaces { display: flex; flex-direction: column; border-top: 1px solid rgba(255,255,255,.18); }
+.l-enlaces a { display: flex; justify-content: space-between; align-items: center; padding: 22px 0; border-bottom: 1px solid rgba(255,255,255,.18); font-size: 18px; transition: padding .3s; }
+.l-enlaces a:hover { padding-left: 10px; }
+.l-enlaces a span { display: inline-flex; gap: 12px; align-items: center; }
+.l-enlaces a small { color: rgba(255,255,255,.5); font-size: 14px; }
+
+/* Pie */
+.l-pie { background: var(--negro); color: rgba(255,255,255,.55); border-top: 1px solid rgba(255,255,255,.1); padding: 36px 0; font-size: 14px; }
+.l-pie .l-cont { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; align-items: center; }
+.l-pie .l-marca { color: var(--blanco); }
+.l-pie nav { display: flex; gap: 18px; flex-wrap: wrap; } .l-pie nav a:hover { color: var(--blanco); }
+.l-arriba { width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,.2); background: none; color: var(--blanco); display: grid; place-items: center; cursor: pointer; }
+
+/* Aparición al bajar */
+.l-rev { opacity: 0; transform: translateY(26px); transition: opacity .9s cubic-bezier(.2,.8,.2,1), transform .9s cubic-bezier(.2,.8,.2,1); }
+.l-rev.on { opacity: 1; transform: none; }
+.l-tarj.l-rev { transition: opacity .9s cubic-bezier(.2,.8,.2,1), transform .9s cubic-bezier(.2,.8,.2,1), background .35s, color .35s; }
+.l-d1 { transition-delay: .08s; } .l-d2 { transition-delay: .16s; } .l-d3 { transition-delay: .24s; }
+
+@media (max-width: 980px) {
+  .l-nav, .l-cab .l-cta { display: none; } .l-menu-b { display: grid; place-items: center; }
+  .l-cabeza, .l-tape-g, .l-contacto-g { grid-template-columns: 1fr; gap: 32px; }
+  .l-grilla { grid-template-columns: 1fr 1fr; }
+  .l-pasos, .l-frase-pie { grid-template-columns: 1fr; }
+  .l-cifras .l-cont span:not(.l-bajar) { display: none; }
+}
+@media (max-width: 620px) {
+  .l-cont { width: calc(100% - 36px); }
+  .l-grilla { grid-template-columns: 1fr; } .l-tarj { min-height: 0; }
+  .l-fila { grid-template-columns: 44px 1fr; } .l-fila svg { display: none; }
+  .l-num4 { grid-template-columns: 1fr 1fr; }
+  .l-mini { grid-template-columns: 1fr; }
+  .l-demo-c { min-height: 470px; }
 }
-
-@media (max-width: 760px) {
-  html { scroll-padding-top: 72px; }
-
-  .lab-header { height: 68px; padding: 0 22px; }
-  .lab-container { width: calc(100% - 44px); }
-  .lab-brand-top { font-size: 27px; }
-  .lab-brand-bottom { font-size: 17px; }
-  .lab-nav, .lab-header > .lab-nav-cta { display: none; }
-  .lab-mobile-toggle { display: grid; place-items: center; }
-
-  .lab-hero { grid-template-columns: 1fr; padding: 65px 0 55px; gap: 45px; }
-  .lab-hero h1 { font-size: clamp(55px, 12vw, 79px); margin-top: 27px; }
-  .lab-lead { font-size: 14px; }
-  .lab-hero-art { min-height: 340px; }
-
-  .lab-marquee-inner { grid-template-columns: 1fr; gap: 18px; padding: 22px 0; }
-  .lab-marquee-item:not(:first-child) { padding-left: 0; border-left: 0; }
-
-  .lab-section { padding: 76px 0; }
-  .lab-section-heading { flex-direction: column; align-items: start; gap: 18px; margin-bottom: 30px; }
-  .lab-section h2 { font-size: clamp(38px, 9vw, 53px); }
-  .lab-section-intro { font-size: 12px; }
-
-  .lab-research-grid { grid-template-columns: 1fr; }
-  .lab-research-card { min-height: auto; padding: 25px 22px 28px; }
-  .lab-card-top { margin-bottom: 29px; }
-  .lab-research-card h3 { font-size: 22px; }
-
-  .lab-model-row { grid-template-columns: 30px 1fr 24px; gap: 12px; padding: 21px 0; }
-  .lab-model-desc { grid-column: 2; font-size: 11px; }
-  .lab-model-arrow { grid-column: 3; grid-row: 1; }
-  .lab-model-title { gap: 11px; }
-  .lab-model-title h3 { font-size: 13px; }
-  .lab-model-symbol { width: 34px; height: 34px; }
-
-  .lab-statement-inner { grid-template-columns: 1fr; gap: 35px; padding: 76px 0; }
-  .lab-statement h2 { font-size: clamp(45px, 10vw, 65px); }
-
-  .lab-blog-grid { grid-template-columns: 1fr; gap: 38px; }
-  .lab-blog-visual { height: 230px; }
-  .lab-blog-card h3 { font-size: 22px; }
-
-  .lab-about-grid { grid-template-columns: 1fr; gap: 30px; }
-
-  .lab-contact { padding: 65px 0; }
-  .lab-contact-inner { grid-template-columns: 1fr; gap: 30px; padding: 27px 22px; }
-  .lab-contact h2 { font-size: 45px; }
-
-  .lab-footer-main { align-items: flex-start; flex-direction: column; gap: 26px; }
-  .lab-footer-brand { align-items: flex-start; }
-  .lab-footer-nav { gap: 18px; }
-  .lab-footer-bottom { flex-direction: column; gap: 8px; }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: .01ms !important;
-    animation-iteration-count: 1 !important;
-    scroll-behavior: auto !important;
-    transition-duration: .01ms !important;
-  }
-  .lab-reveal { opacity: 1; transform: none; }
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .l-rev { opacity: 1; transform: none; }
+  .l-frase span { color: var(--tinta); }
 }
 `;
 
-function Brand() {
-  return (
-    <a className="lab-brand" href="#home" aria-label="LABDE home">
-      <span className="lab-brand-top">Lab</span>
-      <span className="lab-brand-bottom">DE</span>
-    </a>
-  );
-}
-
-function Eyebrow({ children }) {
-  return <div className="lab-eyebrow">{children}</div>;
-}
-
-function Reveal({ children, className = "", delay = 0 }) {
-  const [element, setElement] = useState(null);
-
+// ---------- Red de partículas: nodos que derivan, se conectan por cercanía y difunden pulsos (capacidades que se contagian) ----------
+function RedDeComplejidad({ densidad = 1, interactiva = true }) {
+  const lienzo = useRef(null);
   useEffect(() => {
-    if (!element) return;
+    const cv = lienzo.current;
+    const ctx = cv.getContext("2d");
+    const quieto = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    let w = 0, h = 0, dpr = 1, nodos = [], pulsos = [], raf = 0, visible = true, t0 = performance.now();
+    const raton = { x: -9999, y: -9999, activo: false };
+    const DIST = () => Math.min(170, Math.max(110, w / 10));
 
-    if (!("IntersectionObserver" in window)) {
-      element.classList.add("visible");
-      return;
+    function armar() {
+      const r = cv.getBoundingClientRect();
+      w = r.width; h = r.height; dpr = Math.min(2, window.devicePixelRatio || 1);
+      cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const n = Math.round(Math.min(170, Math.max(50, (w * h) / 9500)) * densidad);
+      // Unos pocos centros grandes (capacidades muy conectadas) y muchos nodos chicos agrupados a su alrededor.
+      const centros = Array.from({ length: 6 }, () => ({ x: w * (0.35 + Math.random() * 0.62), y: h * (0.1 + Math.random() * 0.8) }));
+      nodos = Array.from({ length: n }, (_, i) => {
+        const c = centros[i % centros.length];
+        const agrupado = Math.random() < 0.6;
+        const ang = Math.random() * Math.PI * 2, rad = Math.random() * Math.min(w, h) * 0.22;
+        return {
+          x: agrupado ? c.x + Math.cos(ang) * rad : Math.random() * w,
+          y: agrupado ? c.y + Math.sin(ang) * rad : Math.random() * h,
+          vx: (Math.random() - 0.5) * 0.22, vy: (Math.random() - 0.5) * 0.22,
+          r: i < 6 ? 2.6 : Math.random() < 0.15 ? 1.8 : 1.1,
+          brillo: 0,
+        };
+      });
     }
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          element.classList.add("visible");
-          observer.unobserve(element);
+    function paso(dt) {
+      const d = DIST();
+      for (const p of nodos) {
+        p.x += p.vx * dt; p.y += p.vy * dt;
+        if (p.x < -20) p.x = w + 20; if (p.x > w + 20) p.x = -20;
+        if (p.y < -20) p.y = h + 20; if (p.y > h + 20) p.y = -20;
+        if (raton.activo) {
+          const dx = raton.x - p.x, dy = raton.y - p.y, dd = Math.hypot(dx, dy);
+          if (dd < 180 && dd > 1) { p.x += (dx / dd) * 0.18 * dt * (1 - dd / 180); p.y += (dy / dd) * 0.18 * dt * (1 - dd / 180); }
         }
-      },
-      { threshold: 0.12, rootMargin: "0px 0px -25px 0px" }
-    );
+        p.brillo *= 0.965;
+      }
+      // Un pulso nace en un nodo y salta a sus vecinos: así se difunden las capacidades en la red.
+      if (Math.random() < 0.025 * dt && pulsos.length < 7) {
+        const a = nodos[Math.floor(Math.random() * nodos.length)];
+        pulsos.push({ de: a, a: null, t: 0, saltos: 0 });
+      }
+      for (const s of pulsos) {
+        if (!s.a) {
+          const vec = nodos.filter((q) => q !== s.de && Math.hypot(q.x - s.de.x, q.y - s.de.y) < d);
+          if (!vec.length || s.saltos > 5) { s.fin = true; continue; }
+          s.a = vec[Math.floor(Math.random() * vec.length)]; s.t = 0;
+        }
+        s.t += 0.022 * dt;
+        if (s.t >= 1) { s.a.brillo = 1; s.de = s.a; s.a = null; s.saltos += 1; }
+      }
+      pulsos = pulsos.filter((s) => !s.fin);
+    }
 
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [element]);
+    function dibujar() {
+      ctx.clearRect(0, 0, w, h);
+      const d = DIST(); const d2 = d * d;
+      ctx.lineWidth = 0.6;
+      for (let i = 0; i < nodos.length; i++) {
+        const a = nodos[i];
+        for (let j = i + 1; j < nodos.length; j++) {
+          const b = nodos[j]; const dx = a.x - b.x, dy = a.y - b.y; const q = dx * dx + dy * dy;
+          if (q < d2) {
+            let al = (1 - Math.sqrt(q) / d) * 0.26;
+            if (raton.activo) { const m = Math.hypot((a.x + b.x) / 2 - raton.x, (a.y + b.y) / 2 - raton.y); if (m < 160) al += (1 - m / 160) * 0.35; }
+            ctx.strokeStyle = `rgba(255,255,255,${al.toFixed(3)})`;
+            ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+          }
+        }
+      }
+      for (const s of pulsos) {
+        if (!s.a) continue;
+        const x = s.de.x + (s.a.x - s.de.x) * s.t, y = s.de.y + (s.a.y - s.de.y) * s.t;
+        ctx.strokeStyle = "rgba(255,255,255,.55)"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(s.de.x, s.de.y); ctx.lineTo(x, y); ctx.stroke();
+        ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(x, y, 1.9, 0, Math.PI * 2); ctx.fill();
+        ctx.lineWidth = 0.6;
+      }
+      for (const p of nodos) {
+        const al = 0.55 + p.brillo * 0.45;
+        ctx.fillStyle = `rgba(255,255,255,${al.toFixed(3)})`;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r + p.brillo * 1.6, 0, Math.PI * 2); ctx.fill();
+        if (p.brillo > 0.05) { ctx.strokeStyle = `rgba(255,255,255,${(p.brillo * 0.35).toFixed(3)})`; ctx.beginPath(); ctx.arc(p.x, p.y, p.r + 6 * (1 - p.brillo) + 2, 0, Math.PI * 2); ctx.stroke(); }
+      }
+    }
 
-  return (
-    <div
-      ref={setElement}
-      className={`lab-reveal ${delay ? `lab-delay-${delay}` : ""} ${className}`}
-    >
-      {children}
-    </div>
-  );
+    function bucle(t) {
+      const dt = Math.min(3, (t - t0) / 16.7); t0 = t;
+      if (visible) { paso(dt); dibujar(); }
+      raf = requestAnimationFrame(bucle);
+    }
+
+    armar();
+    if (quieto) { dibujar(); } else { raf = requestAnimationFrame(bucle); }
+    const ro = new ResizeObserver(() => { armar(); if (quieto) dibujar(); });
+    ro.observe(cv);
+    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting && !document.hidden; }, { threshold: 0 });
+    io.observe(cv);
+    const mover = (e) => { const r = cv.getBoundingClientRect(); raton.x = e.clientX - r.left; raton.y = e.clientY - r.top; raton.activo = interactiva && raton.y >= 0 && raton.y <= h; };
+    const salir = () => { raton.activo = false; };
+    window.addEventListener("pointermove", mover, { passive: true });
+    document.addEventListener("pointerleave", salir);
+    return () => { cancelAnimationFrame(raf); ro.disconnect(); io.disconnect(); window.removeEventListener("pointermove", mover); document.removeEventListener("pointerleave", salir); };
+  }, [densidad, interactiva]);
+  return <canvas ref={lienzo} aria-hidden="true" />;
 }
 
-function SectionHeading({ eyebrow, title, description }) {
+// Aparece al entrar en pantalla.
+function Rev({ children, d = 0, as: Tag = "div", className = "" }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!("IntersectionObserver" in window)) { el.classList.add("on"); return; }
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { el.classList.add("on"); io.disconnect(); } }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return <Tag ref={ref} className={`l-rev ${d ? `l-d${d}` : ""} ${className}`}>{children}</Tag>;
+}
+
+// La frase se «enciende» palabra por palabra a medida que se baja.
+function FraseQueSeCompleta({ texto }) {
+  const ref = useRef(null);
+  const palabras = texto.split(" ");
+  const [hasta, setHasta] = useState(0);
+  useEffect(() => {
+    const calc = () => {
+      const r = ref.current.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const p = Math.min(1, Math.max(0, (vh * 0.85 - r.top) / (r.height + vh * 0.35)));
+      setHasta(Math.round(p * palabras.length));
+    };
+    calc();
+    window.addEventListener("scroll", calc, { passive: true }); window.addEventListener("resize", calc);
+    return () => { window.removeEventListener("scroll", calc); window.removeEventListener("resize", calc); };
+  }, [palabras.length]);
+  return <p className="l-frase" ref={ref} aria-label={texto}>{palabras.map((x, i) => <React.Fragment key={i}><span className={i < hasta ? "on" : ""} aria-hidden="true">{x}</span>{" "}</React.Fragment>)}</p>;
+}
+
+// Demostración de TAPE: escribe una pregunta, muestra la respuesta con una tarjeta y pasa a la siguiente.
+function puntosDe(semilla) {
+  let x = semilla * 9301 + 49297;
+  const az = () => { x = (x * 9301 + 49297) % 233280; return x / 233280; };
+  // Forma aproximada de Paraguay en una grilla de 14 × 10 (vacío fuera del país).
+  const forma = ["00111100000000", "01111110000000", "11111111000000", "11111111100000", "01111111110000", "00111111111100", "00001111111110", "00000111111111", "00000011111110", "00000001111100"];
+  return forma.join("").split("").map((c) => (c === "0" ? "v" : az() < 0.48 ? "n" : az() < 0.6 ? "g" : ""));
+}
+function Demo() {
+  const [k, setK] = useState(0);
+  const [escrito, setEscrito] = useState("");
+  const [fase, setFase] = useState("escribe");
+  const ej = DEMO[k];
+  useEffect(() => {
+    const q = DEMO[k].q;
+    const quieto = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (quieto) { setEscrito(q); setFase("responde"); return; }
+    let i = 0; let espera = 0; setEscrito(""); setFase("escribe");
+    const tipeo = setInterval(() => {
+      i += 1; setEscrito(q.slice(0, i));
+      if (i >= q.length) { clearInterval(tipeo); espera = setTimeout(() => setFase("responde"), 450); }
+    }, 38);
+    return () => { clearInterval(tipeo); clearTimeout(espera); };
+  }, [k]);
+  useEffect(() => {
+    if (fase !== "responde") return;
+    const quieto = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (quieto) return;
+    const t = setTimeout(() => setK((x) => (x + 1) % DEMO.length), 5200);
+    return () => clearTimeout(t);
+  }, [fase]);
+  const puntos = puntosDe(ej.semilla);
   return (
-    <div className="lab-section-heading">
-      <div>
-        <Eyebrow>{eyebrow}</Eyebrow>
-        <h2>{title}</h2>
+    <div className="l-demo" aria-label="Ejemplo de conversación con TAPE">
+      <div className="l-demo-bar"><i /><i /><i /><span>TAPE · Preguntale a Paraguay</span></div>
+      <div className="l-demo-c">
+        <div className="l-burb">{escrito}{fase === "escribe" && <span className="cursor" />}</div>
+        <div className={`l-resp${fase === "responde" ? " on" : ""}`}>
+          <span className="l-av">T</span>
+          <div className="l-resp-c">
+            <div><b>{ej.a.split(";")[0]}</b>{ej.a.includes(";") ? `;${ej.a.split(";")[1]}` : ""}</div>
+            <div className="l-mini">
+              <div className="l-mini-k">{ej.k.map(([t, v]) => <div key={t}><span>{t}</span><b>{v}</b></div>)}</div>
+              <div className="l-puntos" aria-hidden="true">{puntos.map((c, i) => <i key={i} className={c} />)}</div>
+            </div>
+            <div className="l-demo-sig"><span>↳ Ver la ficha del mejor distrito</span><span>↳ Comparar dos distritos</span></div>
+          </div>
+        </div>
       </div>
-      {description && <p className="lab-section-intro">{description}</p>}
+      <div className="l-demo-in">Preguntá por un distrito, una actividad o una inversión… <i><ArrowUp size={16} /></i></div>
     </div>
   );
 }
 
-function HeroArtwork() {
-  return (
-    <div
-      className="lab-hero-art"
-      role="img"
-      aria-label="Abstract representation of interconnected scientific research"
-    >
-      <div className="lab-art-grid" />
-      <div className="lab-art-center"><Atom /></div>
-      <div className="lab-art-node lab-node-one"><BrainCircuit /></div>
-      <div className="lab-art-node lab-node-two"><Dna /></div>
-      <div className="lab-art-node lab-node-three"><Cpu /></div>
-      <div className="lab-art-node lab-node-four"><Network /></div>
-      <span className="lab-art-caption">Science × Computation × Discovery</span>
-      <span className="lab-scroll"><ArrowDown size={15} /></span>
-    </div>
-  );
+function Marca() {
+  return <a className="l-marca" href="#inicio" aria-label="LabDE, inicio"><i><b>DE</b></i>LabDE</a>;
 }
 
 export default function App() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [headerScrolled, setHeaderScrolled] = useState(false);
-
+  // La cabecera toma el tono de la sección que tiene debajo: transparente sobre la portada, oscura sobre secciones negras, clara sobre las blancas.
+  const [tono, setTono] = useState("portada");
+  const [menu, setMenu] = useState(false);
   useEffect(() => {
-    const onScroll = () => setHeaderScrolled(window.scrollY > 8);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener("scroll", onScroll);
+    const f = () => {
+      if (window.scrollY < 40) return setTono("portada");
+      const debajo = document.elementsFromPoint(window.innerWidth / 2, 34).find((el) => el.tagName === "SECTION");
+      setTono(debajo && /l-hero|l-paraque|l-contacto/.test(debajo.className) ? "oscura" : "clara");
+    };
+    f(); window.addEventListener("scroll", f, { passive: true });
+    return () => window.removeEventListener("scroll", f);
   }, []);
-
-  const nav = [
-    ["Research", "#research"],
-    ["Models", "#models"],
-    ["About us", "#about"],
-    ["Blog", "#blog"],
-  ];
-
+  const nav = [["Qué hacemos", "#que"], ["Cómo", "#como"], ["Para qué", "#para-que"], ["TAPE", "#tape"], ["Contacto", "#contacto"]];
+  const palabras = ["Complejidad", "Computación", "Creatividad", "Inteligencia artificial", "Apertura intelectual", "Investigación teórica y aplicada"];
   return (
-    <div className="lab-shell">
+    <>
       <style>{css}</style>
-
-      <header className={`lab-header ${headerScrolled ? "scrolled" : ""}`}>
-        <Brand />
-
-        <nav className="lab-nav" aria-label="Main navigation">
-          {nav.map(([label, href]) => (
-            <a key={label} href={href}>{label}</a>
-          ))}
-        </nav>
-
-        <a className="lab-nav-cta" href="#contact">
-          Get in touch <ArrowUpRight size={14} />
-        </a>
-
-        <button
-          className="lab-mobile-toggle"
-          onClick={() => setMenuOpen(!menuOpen)}
-          aria-label={menuOpen ? "Close navigation" : "Open navigation"}
-          aria-expanded={menuOpen}
-        >
-          {menuOpen ? <X size={23} /> : <Menu size={23} />}
-        </button>
-
-        {menuOpen && (
-          <nav className="lab-mobile-panel" aria-label="Mobile navigation">
-            {nav.map(([label, href]) => (
-              <a key={label} href={href} onClick={() => setMenuOpen(false)}>
-                {label} <ArrowUpRight size={14} />
-              </a>
-            ))}
-            <a href="#contact" onClick={() => setMenuOpen(false)}>
-              Contact <ArrowUpRight size={14} />
-            </a>
-          </nav>
-        )}
+      <header className={`l-cab${menu || tono === "clara" ? " clara" : tono === "oscura" ? " oscura" : ""}`}>
+        <div className="l-cont">
+          <Marca />
+          <nav className="l-nav" aria-label="Navegación principal">{nav.map(([t, h]) => <a key={h} href={h}>{t}</a>)}</nav>
+          <a className="l-cta" href={TAPE_URL}>Probar TAPE <ArrowUpRight size={15} /></a>
+          <button className="l-menu-b" onClick={() => setMenu(!menu)} aria-label={menu ? "Cerrar menú" : "Abrir menú"} aria-expanded={menu}>{menu ? <X size={22} /> : <Menu size={22} />}</button>
+        </div>
       </header>
+      {menu && <nav className="l-movil" aria-label="Navegación">{nav.map(([t, h]) => <a key={h} href={h} onClick={() => setMenu(false)}>{t} <ArrowUpRight size={16} /></a>)}<a className="l-cta" href={TAPE_URL}>Probar TAPE gratis <ArrowUpRight size={16} /></a></nav>}
 
       <main>
-        <section className="lab-container lab-hero" id="home">
-          <div className="lab-hero-copy">
-            <Eyebrow>Independent research center</Eyebrow>
-            <h1>
-              Expanding the
-              <br />
-              boundaries of
-              <br />
-              <span className="lab-muted">knowledge.</span>
-            </h1>
-            <p className="lab-lead">
-              LABDE explores artificial intelligence, computational science
-             and economics to investigate difficult problems and
-              develop new ways of understanding the world.
-            </p>
-            <div className="lab-actions">
-              <a href="#research" className="lab-btn">
-                Explore our research <ArrowRight size={15} />
-              </a>
-              <a href="#about" className="lab-btn secondary">Who we are</a>
-            </div>
-          </div>
-          <HeroArtwork />
-        </section>
-
-        <div className="lab-marquee">
-          <div className="lab-container lab-marquee-inner">
-            <div className="lab-marquee-item"><Atom /> Scientific inquiry</div>
-            <div className="lab-marquee-item"><Layers3 /> Interdisciplinary research</div>
-            <div className="lab-marquee-item"><Globe2 /> A global perspective</div>
-          </div>
-        </div>
-
-        <section className="lab-container lab-section" id="research">
-          <Reveal>
-            <SectionHeading
-              eyebrow="Research"
-              title={<>Understanding more.<br />Discovering what’s next.</>}
-              description="We investigate the intersection of disciplines, combining computational methods, scientific reasoning, and engineering to explore challenging questions."
-            />
-          </Reveal>
-
-          <div className="lab-research-grid">
-            {researchAreas.map((area, index) => {
-              const Icon = area.icon;
-              return (
-                <Reveal key={area.number} delay={(index % 3) + 1}>
-                  <article className="lab-research-card">
-                    <div className="lab-card-top">
-                      <span className="lab-number">{area.number} / 04</span>
-                      <span className="lab-card-icon"><Icon /></span>
-                    </div>
-                    <h3>{area.title}</h3>
-                    <p>{area.description}</p>
-                    <div className="lab-tags">
-                      {area.tags.map((tag) => (
-                        <span className="lab-tag" key={tag}>{tag}</span>
-                      ))}
-                    </div>
-                  </article>
-                </Reveal>
-              );
-            })}
-          </div>
-        </section>
-
-        <section className="lab-models" id="models">
-          <div className="lab-container lab-section">
-            <Reveal>
-              <SectionHeading
-                eyebrow="Models & systems"
-                title={<>Research into<br />intelligent systems.</>}
-                description="An overview of the research programs LABDE aims to develop. Each program represents an area of exploration, not a claim that a production model is already available."
-              />
-            </Reveal>
-
-            <div className="lab-model-list">
-              {models.map((model, index) => {
-                const Icon = model.icon;
-                return (
-                  <Reveal key={model.id} delay={(index % 3) + 1}>
-                    <article className="lab-model-row">
-                      <span className="lab-model-index">{model.id}</span>
-                      <div className="lab-model-title">
-                        <span className="lab-model-symbol"><Icon /></span>
-                        <div>
-                          <h3>{model.name}</h3>
-                          <small>{model.category} · Research program</small>
-                        </div>
-                      </div>
-                      <p className="lab-model-desc">{model.description}</p>
-                      <span className="lab-status">{model.status}</span>
-                      <ArrowUpRight className="lab-model-arrow" size={17} />
-                    </article>
-                  </Reveal>
-                );
-              })}
-            </div>
-            <p className="lab-model-note">
-              Program names and descriptions are illustrative. Add links to
-              model cards, documentation, source code, or demos as these become available.
-            </p>
-          </div>
-        </section>
-
-        <section className="lab-statement">
-          <div className="lab-container lab-statement-inner">
-            <Reveal>
-              <Eyebrow>Our perspective</Eyebrow>
-              <h2>
-                The future is
-                <br />
-                <span>not simply predicted.</span>
-                <br />
-                It is investigated.
-              </h2>
-            </Reveal>
-            <Reveal delay={2}>
-              <div className="lab-statement-copy">
-                <p>
-                  Progress emerges when curiosity meets rigorous methods.
-                  We believe research should connect fundamental questions
-                  with practical tools, and local talent with global
-                  scientific communities.
-                </p>
-                <p>
-                  Our ambition is to contribute to a world in which more
-                  people can participate in scientific and technological discovery.
-                </p>
-                <a className="lab-text-link" href="#about">
-                  Our approach <ArrowRight size={14} />
-                </a>
+        <section className="l-hero" id="inicio">
+          <RedDeComplejidad />
+          <div className="l-cont">
+            <Rev><span className="l-ceja"><i />Laboratorio de Desarrollo Económico · Paraguay</span></Rev>
+            <Rev d={1}><h1>Software para entender el <span>desarrollo económico.</span></h1></Rev>
+            <Rev d={2}><p className="l-lead">Hacemos más práctica la economía: llevamos las ideas económicas a herramientas de software e inteligencia artificial.</p></Rev>
+            <Rev d={3}>
+              <div className="l-acciones">
+                <a className="l-btn blanco" href={TAPE_URL}>Probar TAPE <ArrowUpRight size={16} /></a>
+                <a className="l-btn borde" href="#que">Qué hacemos <ArrowRight size={16} /></a>
               </div>
-            </Reveal>
+            </Rev>
+          </div>
+          <div className="l-cifras">
+            <div className="l-cont">
+              <span><b>263</b> distritos · <b>67</b> actividades · <b>5</b> condiciones medidas</span>
+              <a className="l-bajar" href="#que">Bajar <ArrowDown size={15} /></a>
+            </div>
           </div>
         </section>
 
-        <section className="lab-container lab-section" id="blog">
-          <Reveal>
-            <SectionHeading
-              eyebrow="Ideas & perspectives"
-              title={<>Thinking in public.</>}
-              description="Notes on science, technology, economics, and the questions that shape the future of research."
-            />
-          </Reveal>
+        <div className="l-cinta" aria-hidden="true"><div className="l-cinta-in">{[...palabras, ...palabras].map((p, i) => <span key={i}>{p}</span>)}</div></div>
 
-          <div className="lab-blog-grid">
-            {articles.map((article, index) => {
-              const Icon = article.icon;
-              return (
-                <Reveal key={article.title} delay={index + 1}>
-                  <article className="lab-blog-card">
-                    <a
-                      className="lab-blog-visual"
-                      href="#contact"
-                      aria-label={`Contact us about: ${article.title}`}
-                    >
-                      <span className="lab-blog-glyph"><Icon /></span>
-                    </a>
-                    <div className="lab-blog-meta">
-                      <span>{article.category}</span>
-                      <span>NOTE {article.date}</span>
-                    </div>
-                    <h3>{article.title}</h3>
-                    <p>{article.excerpt}</p>
-                    <a className="lab-text-link" href="#contact">
-                      Research perspective <ArrowRight size={14} />
-                    </a>
-                  </article>
-                </Reveal>
-              );
-            })}
+        <section className="l-sec" id="que">
+          <div className="l-cont">
+            <Rev><div className="l-etq">Qué hacemos</div></Rev>
+            <FraseQueSeCompleta texto="Generamos y desarrollamos software para entender el desarrollo económico, y lo ponemos en manos de quienes deciden." />
+            <div className="l-frase-pie">
+              <Rev d={1}><div><b>Para quien invierte</b>Dónde producir, qué condiciones ofrece cada lugar y cuánto rinde un proyecto.</div></Rev>
+              <Rev d={2}><div><b>Para el sector público</b>Qué le falta a cada territorio, quién puede resolverlo y dónde una inversión abre más actividades.</div></Rev>
+              <Rev d={3}><div><b>Para quien investiga</b>Datos, métodos y supuestos abiertos para discutir el desarrollo con evidencia.</div></Rev>
+            </div>
           </div>
-          <p className="lab-blog-note">
-            These are proposed editorial topics, not published articles.
-            Replace them with actual posts when the blog launches.
-          </p>
         </section>
 
-        <section className="lab-about" id="about">
-          <div className="lab-container lab-section">
-            <div className="lab-about-grid">
-              <Reveal>
-                <Eyebrow>Who we are</Eyebrow>
-                <h2>
-                  Independent in
-                  <br />
-                  thought. Connected
-                  <br />
-                  <span className="lab-muted">by curiosity.</span>
-                </h2>
-              </Reveal>
+        <section className="l-sec l-como" id="como">
+          <div className="l-cont">
+            <div className="l-cabeza">
+              <Rev><div className="l-etq">¿Cómo?</div><h2 className="l-h2">Seis ideas, <span>una forma de trabajar.</span></h2></Rev>
+              <Rev d={2}><p className="l-intro">Combinamos complejidad, computación y creatividad con inteligencia artificial, apertura intelectual e investigación teórica y aplicada.</p></Rev>
+            </div>
+            <div className="l-grilla">
+              {COMO.map((c, i) => (
+                <Rev key={c.titulo} d={(i % 3) + 1} className="l-tarj">
+                  <span className="l-num">0{i + 1}</span>
+                  <h3>{c.titulo}</h3>
+                  <p>{c.texto}</p>
+                  <span className="l-ico"><c.icono size={21} /></span>
+                </Rev>
+              ))}
+            </div>
+          </div>
+        </section>
 
-              <Reveal delay={2}>
-                <div className="lab-about-copy">
-                  <p>
-                    LABDE is an independent research initiative focused on
-                    the intersection of science, computation, and technology.
-                    We aim to investigate difficult problems and develop
-                    methods that make knowledge more useful and accessible.
-                  </p>
-                  <p>
-                    Based in Paraguay, we aspire to participate in global
-                    scientific conversations while contributing to the
-                    development of research capacity in Latin America.
-                  </p>
-                  <p>
-                    Our approach is interdisciplinary: we connect ideas
-                    across fields rather than treating scientific,
-                    technological, and economic questions in isolation.
-                  </p>
+        <section className="l-sec l-paraque" id="para-que">
+          <div className="l-cont">
+            <div className="l-cabeza">
+              <Rev><div className="l-etq">¿Para qué?</div><h2 className="l-h2">Para que la economía <span>mejore la vida de la gente.</span></h2></Rev>
+              <Rev d={2}><p className="l-intro">Cada herramienta que hacemos apunta a alguno de estos resultados.</p></Rev>
+            </div>
+            <div className="l-lista">
+              {PARA_QUE.map((x, i) => (
+                <Rev key={x} className="l-fila"><small>0{i + 1}</small><b>{x}</b><ArrowRight size={26} /></Rev>
+              ))}
+            </div>
+          </div>
+        </section>
 
-                  <div className="lab-principles">
-                    <div className="lab-principle">
-                      <span>01</span>
-                      <div>
-                        <h3>Scientific rigor</h3>
-                        <p>Evidence, reproducibility, and intellectual honesty.</p>
-                      </div>
-                    </div>
-                    <div className="lab-principle">
-                      <span>02</span>
-                      <div>
-                        <h3>Open inquiry</h3>
-                        <p>Curiosity without disciplinary boundaries.</p>
-                      </div>
-                    </div>
-                    <div className="lab-principle">
-                      <span>03</span>
-                      <div>
-                        <h3>Meaningful impact</h3>
-                        <p>Research connected to real problems and people.</p>
-                      </div>
-                    </div>
-                  </div>
+        <section className="l-sec l-manifiesto">
+          <div className="l-cont">
+            <Rev><div className="l-etq" style={{ justifyContent: "center" }}>Nuestra apuesta</div></Rev>
+            <Rev d={1}><h2>Hacer más práctica <span>la economía.</span></h2></Rev>
+            <Rev d={2}><p>Aplicar las ideas económicas a herramientas de software e inteligencia artificial que cualquier persona pueda usar para decidir mejor.</p></Rev>
+          </div>
+        </section>
+
+        <section className="l-sec l-tape" id="tape">
+          <div className="l-cont l-tape-g">
+            <div>
+              <Rev><div className="l-tape-t"><i>T</i>TAPE <small>· Territorio, Actividades y Potencial Económico</small></div></Rev>
+              <Rev d={1}><h2 className="l-h2">Preguntale <span>a Paraguay.</span></h2></Rev>
+              <Rev d={2}>
+                <ul className="l-feat">
+                  <li><Check size={18} /><span><b>Dónde producir.</b> Qué distritos están listos para cada actividad, y cuáles están a una sola cosa.</span></li>
+                  <li><Check size={18} /><span><b>Qué falta y quién actúa.</b> Formación, energía, logística o tierra, y quién puede resolverlo.</span></li>
+                  <li><Check size={18} /><span><b>Inversión pública con impacto.</b> Dónde una subestación, una ruta o una escuela abren más actividades.</span></li>
+                  <li><Check size={18} /><span><b>Conozca Paraguay.</b> Economía, precios, comercio y finanzas públicas, con su fuente y su fecha.</span></li>
+                </ul>
+              </Rev>
+              <Rev d={3}>
+                <div className="l-num4">
+                  <div><b>263</b><span>distritos comparados</span></div>
+                  <div><b>67</b><span>actividades productivas</span></div>
+                  <div><b>5</b><span>condiciones medidas</span></div>
+                  <div><b>10</b><span>preguntas gratis sin registrarte</span></div>
                 </div>
-              </Reveal>
+                <div className="l-acciones">
+                  <a className="l-btn negro" href={TAPE_URL}>Probar TAPE gratis <ArrowUpRight size={16} /></a>
+                  <a className="l-btn borde-n" href="#metodo">Cómo funciona</a>
+                </div>
+              </Rev>
             </div>
+            <Rev d={2}><Demo /></Rev>
           </div>
         </section>
 
-        <section className="lab-container lab-contact" id="contact">
-          <div className="lab-contact-inner">
-            <Reveal>
-              <Eyebrow>Start a conversation</Eyebrow>
-              <h2>
-                Every discovery
-                <br />
-                begins with
-                <br />
-                a question.
-              </h2>
-              <p className="lab-contact-copy">
-                Interested in research, scientific collaboration, or
-                exchanging ideas? We welcome conversations with researchers,
-                engineers, students, and institutions.
-              </p>
-            </Reveal>
+        <section className="l-sec" id="metodo">
+          <div className="l-cont">
+            <div className="l-cabeza">
+              <Rev><div className="l-etq">Método</div><h2 className="l-h2">De una pregunta <span>a una herramienta.</span></h2></Rev>
+              <Rev d={2}><p className="l-intro">Los resultados describen distancias frente a quienes ya producen: muestran evidencia y límites, no promesas.</p></Rev>
+            </div>
+            <div className="l-pasos">{METODO.map((p, i) => <Rev key={p.n} d={i + 1} className="l-paso"><small>{p.n}</small><h3>{p.t}</h3><p>{p.d}</p></Rev>)}</div>
+          </div>
+        </section>
 
-            <Reveal delay={2}>
-              <div className="lab-contact-links">
-                <a className="lab-contact-link" href="mailto:hello@labde.org">
-                  <span><Mail size={16} style={{ verticalAlign: "middle", marginRight: 12 }} /> General inquiries</span>
-                  <ArrowUpRight />
-                </a>
-                <a className="lab-contact-link" href="mailto:research@labde.org">
-                  <span><FlaskConical size={16} style={{ verticalAlign: "middle", marginRight: 12 }} /> Research collaborations</span>
-                  <ArrowUpRight />
-                </a>
-                <a
-                  className="lab-contact-link"
-                  href="https://github.com/"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  <span><GitBranch size={16} style={{ verticalAlign: "middle", marginRight: 12 }} /> Open-source research</span>
-                  <ArrowUpRight />
-                </a>
+        <section className="l-sec l-contacto" id="contacto">
+          <RedDeComplejidad densidad={0.55} interactiva={false} />
+          <div className="l-cont l-contacto-g">
+            <Rev><div className="l-etq">Contacto</div><h2>Toda herramienta empieza <span>con una pregunta.</span></h2></Rev>
+            <Rev d={2}>
+              <div className="l-enlaces">
+                <a href={`mailto:${CONTACTO.general}`}><span><Mail size={18} />Escribinos</span><small>{CONTACTO.general}</small></a>
+                <a href={`mailto:${CONTACTO.investigacion}`}><span><Orbit size={18} />Investigar juntos</span><small>{CONTACTO.investigacion}</small></a>
+                <a href={TAPE_URL}><span><Sparkles size={18} />Probar TAPE</span><ArrowUpRight size={18} /></a>
               </div>
-              <p className="lab-model-note">
-                Replace the example email addresses and GitHub destination
-                with official LABDE accounts before publishing.
-              </p>
-            </Reveal>
+            </Rev>
           </div>
         </section>
       </main>
 
-      <footer className="lab-footer">
-        <div className="lab-container">
-          <div className="lab-footer-main">
-            <div className="lab-footer-brand">
-              <Brand />
-              <p>Independent research.<br />Shared knowledge.</p>
-            </div>
-            <nav className="lab-footer-nav" aria-label="Footer navigation">
-              <a href="#research">Research</a>
-              <a href="#models">Models</a>
-              <a href="#about">About us</a>
-              <a href="#blog">Blog</a>
-              <a href="#contact">Contact</a>
-            </nav>
-          </div>
-          <div className="lab-footer-bottom">
-            <span>© {new Date().getFullYear()} LABDE</span>
-            <span>Researching from Paraguay, connected to the world.</span>
-          </div>
+      <footer className="l-pie">
+        <div className="l-cont">
+          <Marca />
+          <nav aria-label="Pie de página">{nav.map(([t, h]) => <a key={h} href={h}>{t}</a>)}</nav>
+          <span>© {new Date().getFullYear()} LabDE · Desde Paraguay</span>
+          <button className="l-arriba" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} aria-label="Volver arriba"><ArrowUp size={17} /></button>
         </div>
       </footer>
-    </div>
+    </>
   );
 }

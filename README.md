@@ -1,20 +1,17 @@
-# React + Vite
+# LabDE · sitio web
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Sitio del Laboratorio de Desarrollo Económico. Todo el sitio está en `src/App.jsx` (componentes y estilos); paleta negro, gris y blanco, con una red de partículas animada de fondo (respeta «reducir movimiento»).
 
-Currently, two official plugins are available:
+```sh
+npm install
+npm run dev        # http://localhost:5174
+npm run build      # sitio estático en dist/
+```
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Producción (Vercel)
 
-## React Compiler
+El sitio se publica en `www.labdesarrollo.lat`. TAPE (repo `tape-saas`, proyecto de Vercel `tape-saas`) se sirve en el mismo dominio bajo `/tape`: `vercel.json` reescribe `/tape/*` al proyecto de TAPE. Si cambia la dirección de ese proyecto, actualizarla en `vercel.json`.
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+En desarrollo, «Probar TAPE» apunta a `http://127.0.0.1:5173/` (o a `VITE_TAPE_URL`).
 
-Note: This will impact Vite dev & build performances.
-You can also try [the experimental native React Compiler support in plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md#rust-react-compiler) by using `compiler: true` in the plugin options instead of using the Babel plugin.
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
-"# Labdewebsite" 
+Antes de publicar: reemplazar los correos de contacto en la constante `CONTACTO` de `src/App.jsx`.
