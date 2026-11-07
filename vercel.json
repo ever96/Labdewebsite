@@ -5,6 +5,7 @@
   "outputDirectory": "dist",
   "rewrites": [
     { "source": "/tape", "destination": "https://tape-saas.vercel.app/tape/" },
+    { "source": "/tape/", "destination": "https://tape-saas.vercel.app/tape/" },
     { "source": "/tape/:ruta*", "destination": "https://tape-saas.vercel.app/tape/:ruta*" }
   ],
   "headers": [
