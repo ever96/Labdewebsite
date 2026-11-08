@@ -2,26 +2,34 @@
 // Paleta negro, gris y blanco. Fondo animado: una red de partículas que se conectan y difunden capacidades (la idea del espacio de productos).
 import React, { useEffect, useRef, useState } from "react";
 import {
-  ArrowDown, ArrowRight, ArrowUp, ArrowUpRight, BrainCircuit, Check, Cpu, FlaskConical, Lightbulb, Mail, Menu, Network, Orbit, Sparkles, Telescope, X,
+  ArrowDown, ArrowRight, ArrowUp, ArrowUpRight, BrainCircuit, Check, Cpu, FlaskConical, Lightbulb, Mail, Menu, Network, Orbit, Plus, Sparkles, Telescope, X,
 } from "lucide-react";
 
 // TAPE: en producción vive en el mismo dominio, en /tape (vercel.json la trae del proyecto tape-saas); en desarrollo, en el puerto 5173.
 const TAPE_URL = import.meta.env.VITE_TAPE_URL || (import.meta.env.PROD ? "/tape/" : "http://127.0.0.1:5173/");
-// Reemplazar por las direcciones oficiales antes de publicar.
 const CONTACTO = "labdepy@gmail.com";
 
+// Cada tarjeta muestra el título y una línea; el texto completo aparece al pasar el mouse o al tocarla.
 const COMO = [
-  { icono: Network, titulo: "Complejidad", texto: "Vemos la economía como una red de capacidades: qué sabe hacer cada lugar y qué tiene cerca de poder hacer." },
-  { icono: Cpu, titulo: "Computación", texto: "Procesamos datos de comercio, producción, empleo y territorio a escala, con métodos reproducibles." },
-  { icono: Lightbulb, titulo: "Creatividad", texto: "Diseñamos herramientas nuevas para preguntas que el desarrollo se hace desde hace décadas." },
-  { icono: BrainCircuit, titulo: "Inteligencia artificial", texto: "Modelos que conversan con los datos, para que cualquiera pueda preguntar y entender." },
-  { icono: Telescope, titulo: "Apertura intelectual", texto: "Ideas de distintas escuelas y disciplinas, sin dogmas, y resultados abiertos a la crítica." },
-  { icono: FlaskConical, titulo: "Investigación teórica y aplicada", texto: "De la teoría del crecimiento y la complejidad económica a software que se usa todos los días." },
+  { icono: Network, titulo: "Complejidad", corto: "La economía como una red de capacidades y de aprendizaje.",
+    texto: "Vemos la economía como un sistema complejo: millones de personas y empresas que interactúan y deciden sin un control central. De esas decisiones surgen comportamientos que no se entienden mirando cada parte por separado. Por eso estudiamos la economía como una red de capacidades y de aprendizaje: qué sabe hacer cada lugar, cómo lo aprendió y qué tiene cerca de poder hacer." },
+  { icono: Cpu, titulo: "Computación", corto: "Grandes volúmenes de datos, con métodos que se pueden auditar.",
+    texto: "Un sistema complejo no se entiende con una sola planilla. Procesamos grandes volúmenes de datos de comercio, producción, empleo y territorio, con métodos reproducibles y sistemas que se pueden auditar." },
+  { icono: BrainCircuit, titulo: "Inteligencia artificial", corto: "Convierte la complejidad en respuestas claras.",
+    texto: "Algoritmos y agentes que aprenden de los datos, encuentran patrones que nadie ve a simple vista y conversan con quien pregunta. Convierten la complejidad en respuestas claras." },
+  { icono: Lightbulb, titulo: "Creatividad", corto: "Preguntas nuevas y herramientas que antes no existían.",
+    texto: "El desarrollo no se resuelve repitiendo recetas. Hacemos preguntas nuevas, combinamos ideas que no suelen estar juntas y creamos herramientas que antes no existían." },
+  { icono: Telescope, titulo: "Apertura intelectual", corto: "Una caja de herramientas, no una doctrina.",
+    texto: "Una caja de herramientas, no una doctrina. Hacemos conversar escuelas y disciplinas distintas, sin dogmas, y dejamos nuestros resultados abiertos a la crítica." },
+  { icono: FlaskConical, titulo: "Investigación teórica y aplicada", corto: "Rigor en el pensamiento, aplicaciones reales.",
+    texto: "Rigor en el pensamiento y en los métodos, con un solo fin: aplicaciones reales que mejoren la vida de las personas." },
 ];
 
-const PARA_QUE = [
-  "Aumentar el nivel de vida", "Bienestar", "Transformación estructural", "Aumentar la productividad", "Calidad del empleo",
-  "Mejores ingresos", "Disminuir la pobreza", "Generar y atraer inversiones", "Aprendizaje",
+// ¿Para qué? Una cadena: los motores mueven los resultados, y los resultados llevan al fin.
+const CADENA = [
+  { n: "Fin", d: "lo que buscamos", items: ["Mejor calidad de vida"] },
+  { n: "Resultados", d: "cómo se nota", items: ["Más y mejores empleos", "Mejores ingresos", "Menos pobreza"] },
+  { n: "Motores", d: "qué lo mueve", items: ["Productividad", "Innovación y desarrollo tecnológico", "Diversificación y complejidad", "Inversión", "Aprendizaje y capacidades"] },
 ];
 
 const METODO = [
@@ -31,7 +39,7 @@ const METODO = [
 ];
 
 const DEMO = [
-  { q: "¿Dónde instalar una fábrica de envases plásticos?", a: "134 distritos están listos; 82 todavía no la tienen.", k: [["Listos", "134"], ["Falta una cosa", "74"], ["Faltan varias", "54"]], semilla: 3 },
+  { q: "¿Dónde instalar una fábrica de envases plásticos?", a: "134 distritos están listos; a 74 les falta una sola cosa.", k: [["Listos", "134"], ["Falta una cosa", "74"], ["Faltan varias", "54"]], semilla: 3 },
   { q: "¿Qué puede desarrollar San Alberto?", a: "10 actividades nuevas podrían instalarse con lo que ya tiene.", k: [["Actividades nuevas", "10"], ["Ya produce", "10"], ["Lo que más destraba", "Educación"]], semilla: 7 },
   { q: "¿Dónde invertir en energía para abrir actividades?", a: "Abriría actividades en 76 distritos: 91 combinaciones nuevas.", k: [["Distritos", "76"], ["Combinaciones", "91"], ["Ente", "ANDE"]], semilla: 11 },
 ];
@@ -124,33 +132,52 @@ button { font: inherit; color: inherit; }
 .l-grilla { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--blanco); border: 1px solid var(--linea); border-radius: 24px; overflow: hidden; }
 .l-tarj { background: var(--blanco); box-shadow: inset -1px -1px 0 var(--linea); padding: 34px 30px 36px; min-height: 280px; display: flex; flex-direction: column; gap: 14px; transition: background .35s, color .35s; position: relative; }
 .l-tarj:hover { background: var(--negro); color: var(--blanco); }
-.l-tarj:hover p, .l-tarj:hover .l-num { color: rgba(255,255,255,.66); }
+.l-tarj:hover p, .l-tarj:hover .l-num { color: rgba(255,255,255,.72); }
 .l-tarj:hover .l-ico { background: var(--blanco); color: var(--negro); }
 .l-tarj .l-num { font-size: 13px; color: var(--gris2); font-variant-numeric: tabular-nums; transition: color .35s; }
 .l-ico { width: 46px; height: 46px; border-radius: 14px; background: var(--negro); color: var(--blanco); display: grid; place-items: center; margin-top: auto; transition: background .35s, color .35s; }
 .l-tarj h3 { font-size: 22px; letter-spacing: -.02em; margin: 6px 0 0; font-weight: 600; }
-.l-tarj p { margin: 0; color: var(--gris); line-height: 1.6; font-size: 15px; transition: color .35s; }
+.l-tarj p { margin: 0; color: var(--gris); line-height: 1.6; font-size: 15px; transition: color .35s, opacity .35s, transform .35s; }
+.l-tarj { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.l-tarj-txt { display: grid; }
+.l-tarj-txt > p { grid-area: 1 / 1; }
+.l-tarj .l-largo { opacity: 0; transform: translateY(6px); font-size: 14.5px; line-height: 1.58; }
+.l-tarj.abierta .l-corto { opacity: 0; transform: translateY(-6px); }
+.l-tarj.abierta .l-largo { opacity: 1; transform: none; }
+.l-tarj.abierta { background: var(--negro); color: var(--blanco); }
+.l-tarj.abierta p, .l-tarj.abierta .l-num { color: rgba(255,255,255,.72); }
+.l-tarj.abierta .l-ico { background: var(--blanco); color: var(--negro); }
+@media (hover: hover) {
+  .l-tarj:hover .l-corto { opacity: 0; transform: translateY(-6px); }
+  .l-tarj:hover .l-largo { opacity: 1; transform: none; }
+}
+.l-mas { position: absolute; top: 30px; right: 28px; width: 26px; height: 26px; border-radius: 50%; border: 1px solid currentColor; display: grid; place-items: center; opacity: .35; transition: transform .35s, opacity .35s; }
+.l-tarj:hover .l-mas, .l-tarj.abierta .l-mas { opacity: .8; transform: rotate(45deg); }
 
 /* Para qué */
 .l-paraque { background: var(--negro); color: var(--blanco); position: relative; overflow: hidden; }
 .l-paraque .l-etq { color: rgba(255,255,255,.55); }
 .l-paraque .l-h2 span { color: rgba(255,255,255,.4); }
 .l-paraque .l-intro { color: rgba(255,255,255,.6); }
-.l-lista { border-top: 1px solid rgba(255,255,255,.14); }
-.l-fila { display: grid; grid-template-columns: 80px 1fr auto; align-items: center; gap: 20px; padding: 22px 0; border-bottom: 1px solid rgba(255,255,255,.14); cursor: default; position: relative; }
-.l-fila small { color: rgba(255,255,255,.4); font-size: 14px; font-variant-numeric: tabular-nums; }
-.l-fila b { font-size: clamp(26px, 3.6vw, 48px); font-weight: 500; letter-spacing: -.03em; color: rgba(255,255,255,.5); transition: color .3s, transform .4s cubic-bezier(.2,.8,.2,1); }
-.l-fila svg { opacity: 0; transform: translateX(-10px); transition: opacity .3s, transform .3s; }
-.l-fila:hover b { color: var(--blanco); transform: translateX(10px); }
-.l-fila:hover svg { opacity: 1; transform: none; }
-.l-fila::before { content: ''; position: absolute; left: 0; bottom: -1px; height: 1px; width: 0; background: var(--blanco); transition: width .6s cubic-bezier(.2,.8,.2,1); }
-.l-fila:hover::before { width: 100%; }
+
+/* Cadena: fin, resultados y motores */
+.l-cadena { border-top: 1px solid rgba(255,255,255,.14); }
+.l-eslabon { display: grid; grid-template-columns: 200px 1fr; gap: 24px; padding: 30px 0; border-bottom: 1px solid rgba(255,255,255,.14); align-items: baseline; }
+.l-eslabon h3 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: .02em; }
+.l-eslabon h3 small { display: block; font-weight: 400; color: rgba(255,255,255,.45); margin-top: 4px; font-size: 13.5px; }
+.l-eslabon ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 26px; }
+.l-eslabon li { font-weight: 500; letter-spacing: -.03em; color: rgba(255,255,255,.62); transition: color .3s; position: relative; }
+.l-eslabon li:hover { color: var(--blanco); }
+.l-eslabon.e0 li { font-size: clamp(36px, 5.2vw, 72px); color: var(--blanco); line-height: 1.05; }
+.l-eslabon.e1 li { font-size: clamp(26px, 3.4vw, 44px); }
+.l-eslabon.e2 li { font-size: clamp(20px, 2.3vw, 28px); }
+.l-eslabon.e2 li:not(:last-child)::after, .l-eslabon.e1 li:not(:last-child)::after { content: '·'; position: absolute; right: -17px; color: rgba(255,255,255,.3); }
 
 /* Frase central */
 .l-manifiesto { text-align: center; }
-.l-manifiesto h2 { font-size: clamp(40px, 6.4vw, 96px); line-height: 1; letter-spacing: -.05em; font-weight: 600; margin: 0 auto; max-width: 15ch; }
+.l-manifiesto h2 { font-size: clamp(36px, 5.4vw, 80px); line-height: 1.02; letter-spacing: -.045em; font-weight: 600; margin: 0 auto; max-width: 19ch; }
 .l-manifiesto h2 span { color: var(--gris2); }
-.l-manifiesto p { font-size: 19px; color: var(--gris); max-width: 46ch; margin: 30px auto 0; line-height: 1.6; }
+.l-manifiesto p { font-size: 19px; color: var(--gris); max-width: 58ch; margin: 30px auto 0; line-height: 1.65; }
 
 /* TAPE */
 .l-tape { background: var(--suave); }
@@ -158,7 +185,9 @@ button { font: inherit; color: inherit; }
 .l-tape-t { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; margin-bottom: 22px; }
 .l-tape-t i { width: 34px; height: 34px; border-radius: 10px; background: var(--negro); color: var(--blanco); display: grid; place-items: center; font-style: normal; font-weight: 800; }
 .l-tape-t small { color: var(--gris); font-weight: 400; }
-.l-feat { list-style: none; padding: 0; margin: 32px 0; display: grid; gap: 14px; }
+.l-tape-p { font-size: 17px; line-height: 1.6; color: var(--gris); margin: 24px 0 0; max-width: 52ch; }
+.l-feat-t { font-weight: 600; font-size: 15px; margin: 28px 0 0; }
+.l-feat { list-style: none; padding: 0; margin: 14px 0 32px; display: grid; gap: 12px; }
 .l-feat li { display: grid; grid-template-columns: 26px 1fr; gap: 10px; font-size: 16px; line-height: 1.5; }
 .l-feat li svg { margin-top: 3px; }
 .l-feat li span { color: var(--gris); }
@@ -233,12 +262,15 @@ button { font: inherit; color: inherit; }
   .l-cabeza, .l-tape-g, .l-contacto-g { grid-template-columns: 1fr; gap: 32px; }
   .l-grilla { grid-template-columns: 1fr 1fr; }
   .l-pasos, .l-frase-pie { grid-template-columns: 1fr; }
+  .l-eslabon { grid-template-columns: 150px 1fr; }
   .l-cifras .l-cont span:not(.l-bajar) { display: none; }
 }
 @media (max-width: 620px) {
   .l-cont { width: calc(100% - 36px); }
   .l-grilla { grid-template-columns: 1fr; } .l-tarj { min-height: 0; }
-  .l-fila { grid-template-columns: 44px 1fr; } .l-fila svg { display: none; }
+  .l-tarj .l-largo { display: none; } .l-tarj.abierta .l-largo { display: block; } .l-tarj.abierta .l-corto { display: none; }
+  .l-tarj .l-ico { margin-top: 10px; }
+  .l-eslabon { grid-template-columns: 1fr; gap: 12px; }
   .l-num4 { grid-template-columns: 1fr 1fr; }
   .l-mini { grid-template-columns: 1fr; }
   .l-demo-c { min-height: 470px; }
@@ -367,16 +399,17 @@ function RedDeComplejidad({ densidad = 1, interactiva = true }) {
 }
 
 // Aparece al entrar en pantalla.
-function Rev({ children, d = 0, as: Tag = "div", className = "" }) {
+// El estado «visto» vive en React para que un cambio de clase (por ejemplo, abrir una tarjeta) no lo borre.
+function Rev({ children, d = 0, as: Tag = "div", className = "", ...resto }) {
   const ref = useRef(null);
+  const [visto, setVisto] = useState(() => typeof window !== "undefined" && !("IntersectionObserver" in window));
   useEffect(() => {
-    const el = ref.current;
-    if (!("IntersectionObserver" in window)) { el.classList.add("on"); return; }
-    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { el.classList.add("on"); io.disconnect(); } }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
-    io.observe(el);
+    if (visto) return;
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVisto(true); io.disconnect(); } }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
+    io.observe(ref.current);
     return () => io.disconnect();
-  }, []);
-  return <Tag ref={ref} className={`l-rev ${d ? `l-d${d}` : ""} ${className}`}>{children}</Tag>;
+  }, [visto]);
+  return <Tag ref={ref} className={`l-rev${visto ? " on" : ""} ${d ? `l-d${d}` : ""} ${className}`} {...resto}>{children}</Tag>;
 }
 
 // La frase se «enciende» palabra por palabra a medida que se baja.
@@ -432,7 +465,7 @@ function Demo() {
   const puntos = puntosDe(ej.semilla);
   return (
     <div className="l-demo" aria-label="Ejemplo de conversación con TAPE">
-      <div className="l-demo-bar"><i /><i /><i /><span>TAPE · Preguntale a Paraguay</span></div>
+      <div className="l-demo-bar"><i /><i /><i /><span>TAPE · Preguntale a TAPE</span></div>
       <div className="l-demo-c">
         <div className="l-burb">{escrito}{fase === "escribe" && <span className="cursor" />}</div>
         <div className={`l-resp${fase === "responde" ? " on" : ""}`}>
@@ -449,6 +482,24 @@ function Demo() {
       </div>
       <div className="l-demo-in">Preguntá por un distrito, una actividad o una inversión… <i><ArrowUp size={16} /></i></div>
     </div>
+  );
+}
+
+function TarjetaComo({ c, i }) {
+  const [abierta, setAbierta] = useState(false);
+  const alternar = () => setAbierta((x) => !x);
+  return (
+    <Rev d={(i % 3) + 1} className={`l-tarj${abierta ? " abierta" : ""}`} role="button" tabIndex={0} aria-expanded={abierta}
+      onClick={alternar} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); alternar(); } }}>
+      <span className="l-num">0{i + 1}</span>
+      <span className="l-mas" aria-hidden="true"><Plus size={14} /></span>
+      <h3>{c.titulo}</h3>
+      <div className="l-tarj-txt">
+        <p className="l-corto" aria-hidden={abierta}>{c.corto}</p>
+        <p className="l-largo" aria-hidden={!abierta}>{c.texto}</p>
+      </div>
+      <span className="l-ico"><c.icono size={21} /></span>
+    </Rev>
   );
 }
 
@@ -470,7 +521,7 @@ export default function App() {
     return () => window.removeEventListener("scroll", f);
   }, []);
   const nav = [["Qué hacemos", "#que"], ["Cómo", "#como"], ["Para qué", "#para-que"], ["TAPE", "#tape"], ["Contacto", "#contacto"]];
-  const palabras = ["Complejidad", "Computación", "Creatividad", "Inteligencia artificial", "Apertura intelectual", "Investigación teórica y aplicada"];
+  const palabras = COMO.map((c) => c.titulo);
   return (
     <>
       <style>{css}</style>
@@ -489,8 +540,8 @@ export default function App() {
           <RedDeComplejidad />
           <div className="l-cont">
             <Rev><span className="l-ceja"><i />Laboratorio de Desarrollo Económico · Paraguay</span></Rev>
-            <Rev d={1}><h1>Software para entender el <span>desarrollo económico.</span></h1></Rev>
-            <Rev d={2}><p className="l-lead">Hacemos más práctica la economía: llevamos las ideas económicas a herramientas de software e inteligencia artificial.</p></Rev>
+            <Rev d={1}><h1>Software para el <span>desarrollo económico.</span></h1></Rev>
+            <Rev d={2}><p className="l-lead">Hacemos más práctica la economía: convertimos problemas económicos complejos en herramientas simples, con software e inteligencia artificial.</p></Rev>
             <Rev d={3}>
               <div className="l-acciones">
                 <a className="l-btn blanco" href={TAPE_URL}>Probar TAPE <ArrowUpRight size={16} /></a>
@@ -500,7 +551,7 @@ export default function App() {
           </div>
           <div className="l-cifras">
             <div className="l-cont">
-              <span><b>263</b> distritos · <b>67</b> actividades · <b>5</b> condiciones medidas</span>
+              <span><b>262</b> distritos · <b>67</b> actividades · <b>5</b> condiciones medidas</span>
               <a className="l-bajar" href="#que">Bajar <ArrowDown size={15} /></a>
             </div>
           </div>
@@ -511,10 +562,10 @@ export default function App() {
         <section className="l-sec" id="que">
           <div className="l-cont">
             <Rev><div className="l-etq">Qué hacemos</div></Rev>
-            <FraseQueSeCompleta texto="Generamos y desarrollamos software para entender el desarrollo económico, y lo ponemos en manos de quienes deciden." />
+            <FraseQueSeCompleta texto="Investigamos los procesos y las barreras del desarrollo económico, y los convertimos en soluciones de software e inteligencia artificial para quienes invierten, producen y deciden." />
             <div className="l-frase-pie">
-              <Rev d={1}><div><b>Para quien invierte</b>Dónde producir, qué condiciones ofrece cada lugar y cuánto rinde un proyecto.</div></Rev>
-              <Rev d={2}><div><b>Para el sector público</b>Qué le falta a cada territorio, quién puede resolverlo y dónde una inversión abre más actividades.</div></Rev>
+              <Rev d={1}><div><b>Para quien invierte y produce</b>Dónde producir y qué condiciones de costos y logística ofrece cada lugar.</div></Rev>
+              <Rev d={2}><div><b>Para el sector público y las comunidades</b>Qué actividades puede desarrollar cada territorio, qué le falta para lograrlo y quién puede resolverlo. Dónde una inversión abre más oportunidades y eleva su complejidad económica.</div></Rev>
               <Rev d={3}><div><b>Para quien investiga</b>Datos, métodos y supuestos abiertos para discutir el desarrollo con evidencia.</div></Rev>
             </div>
           </div>
@@ -524,17 +575,10 @@ export default function App() {
           <div className="l-cont">
             <div className="l-cabeza">
               <Rev><div className="l-etq">¿Cómo?</div><h2 className="l-h2">Seis ideas, <span>una forma de trabajar.</span></h2></Rev>
-              <Rev d={2}><p className="l-intro">Combinamos complejidad, computación y creatividad con inteligencia artificial, apertura intelectual e investigación teórica y aplicada.</p></Rev>
+              <Rev d={2}><p className="l-intro">Combinamos complejidad, computación e inteligencia artificial con creatividad, apertura intelectual e investigación teórica y aplicada.</p></Rev>
             </div>
             <div className="l-grilla">
-              {COMO.map((c, i) => (
-                <Rev key={c.titulo} d={(i % 3) + 1} className="l-tarj">
-                  <span className="l-num">0{i + 1}</span>
-                  <h3>{c.titulo}</h3>
-                  <p>{c.texto}</p>
-                  <span className="l-ico"><c.icono size={21} /></span>
-                </Rev>
-              ))}
+              {COMO.map((c, i) => <TarjetaComo key={c.titulo} c={c} i={i} />)}
             </div>
           </div>
         </section>
@@ -543,11 +587,14 @@ export default function App() {
           <div className="l-cont">
             <div className="l-cabeza">
               <Rev><div className="l-etq">¿Para qué?</div><h2 className="l-h2">Para que la economía <span>mejore la vida de la gente.</span></h2></Rev>
-              <Rev d={2}><p className="l-intro">Cada herramienta que hacemos apunta a alguno de estos resultados.</p></Rev>
+              <Rev d={2}><p className="l-intro">Nuestro fin es la calidad de vida. Para lograrlo hacen falta más y mejores empleos, y eso exige producir mejor y producir cosas nuevas.</p></Rev>
             </div>
-            <div className="l-lista">
-              {PARA_QUE.map((x, i) => (
-                <Rev key={x} className="l-fila"><small>0{i + 1}</small><b>{x}</b><ArrowRight size={26} /></Rev>
+            <div className="l-cadena">
+              {CADENA.map((e, i) => (
+                <Rev key={e.n} className={`l-eslabon e${i}`}>
+                  <h3>{e.n}<small>{e.d}</small></h3>
+                  <ul>{e.items.map((x) => <li key={x}>{x}</li>)}</ul>
+                </Rev>
               ))}
             </div>
           </div>
@@ -555,9 +602,9 @@ export default function App() {
 
         <section className="l-sec l-manifiesto">
           <div className="l-cont">
-            <Rev><div className="l-etq" style={{ justifyContent: "center" }}>Nuestra apuesta</div></Rev>
-            <Rev d={1}><h2>Hacer más práctica <span>la economía.</span></h2></Rev>
-            <Rev d={2}><p>Aplicar las ideas económicas a herramientas de software e inteligencia artificial que cualquier persona pueda usar para decidir mejor.</p></Rev>
+            <Rev><div className="l-etq" style={{ justifyContent: "center" }}>Nuestra visión</div></Rev>
+            <Rev d={1}><h2>Desarrollarse es aprender a hacer más cosas, <span>y hacerlas mejor.</span></h2></Rev>
+            <Rev d={2}><p>Una región se desarrolla cuando acumula capacidades. Por un lado, capacidades productivas: los conocimientos y aprendizajes de su gente y sus empresas, que le permiten hacer más cosas y cosas más complejas, más sofisticadas y difíciles de hacer. Por otro, capacidades institucionales: las reglas y los mecanismos que coordinan ese proceso y lo incentivan de la forma más eficiente.</p></Rev>
           </div>
         </section>
 
@@ -565,24 +612,28 @@ export default function App() {
           <div className="l-cont l-tape-g">
             <div>
               <Rev><div className="l-tape-t"><i>T</i>TAPE <small>· Territorio, Actividades y Potencial Económico</small></div></Rev>
-              <Rev d={1}><h2 className="l-h2">Preguntale <span>a Paraguay.</span></h2></Rev>
+              <Rev d={1}><h2 className="l-h2">Preguntale <span>a TAPE.</span></h2></Rev>
               <Rev d={2}>
+                <p className="l-tape-p">TAPE es un asistente de inteligencia artificial creado por el LabDE, basado en la complejidad económica y las capacidades productivas. Conoce los 262 distritos de Paraguay: qué produce cada uno, qué capacidades tiene y cuáles le faltan. Vos preguntás en lenguaje simple y TAPE responde con datos, fuentes y límites.</p>
+                <p className="l-feat-t">Con TAPE podés…</p>
                 <ul className="l-feat">
-                  <li><Check size={18} /><span><b>Dónde producir.</b> Qué distritos están listos para cada actividad, y cuáles están a una sola cosa.</span></li>
-                  <li><Check size={18} /><span><b>Qué falta y quién actúa.</b> Formación, energía, logística o tierra, y quién puede resolverlo.</span></li>
-                  <li><Check size={18} /><span><b>Inversión pública con impacto.</b> Dónde una subestación, una ruta o una escuela abren más actividades.</span></li>
-                  <li><Check size={18} /><span><b>Conozca Paraguay.</b> Economía, precios, comercio y finanzas públicas, con su fuente y su fecha.</span></li>
+                  <li><Check size={18} /><span><b>Qué producir.</b> Qué actividades tienen condiciones en cada ciudad o distrito.</span></li>
+                  <li><Check size={18} /><span><b>Subir de nivel.</b> Qué bienes más sofisticados puede desarrollar tu territorio.</span></li>
+                  <li><Check size={18} /><span><b>Cerrar brechas.</b> Qué le falta a un lugar para producir más y mejor: formación, energía, logística o tierra.</span></li>
+                  <li><Check size={18} /><span><b>Formar talento.</b> Dónde hacen falta instituciones educativas, qué carreras y dónde destraban más actividades.</span></li>
+                  <li><Check size={18} /><span><b>Dónde instalar tu planta.</b> Comparar lugares por logística, mano de obra y condiciones para producir.</span></li>
+                  <li><Check size={18} /><span><b>Inversión pública con impacto.</b> Dónde una inversión en infraestructura o energía rinde más para el crecimiento.</span></li>
                 </ul>
               </Rev>
               <Rev d={3}>
                 <div className="l-num4">
-                  <div><b>263</b><span>distritos comparados</span></div>
+                  <div><b>262</b><span>distritos comparados</span></div>
                   <div><b>67</b><span>actividades productivas</span></div>
                   <div><b>5</b><span>condiciones medidas</span></div>
                   <div><b>10</b><span>preguntas gratis sin registrarte</span></div>
                 </div>
                 <div className="l-acciones">
-                  <a className="l-btn negro" href={TAPE_URL}>Probar TAPE gratis <ArrowUpRight size={16} /></a>
+                  <a className="l-btn negro" href={TAPE_URL}>Preguntale a TAPE gratis <ArrowUpRight size={16} /></a>
                   <a className="l-btn borde-n" href="#metodo">Cómo funciona</a>
                 </div>
               </Rev>
