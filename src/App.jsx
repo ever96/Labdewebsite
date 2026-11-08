@@ -1,6 +1,7 @@
 // LabDE · Laboratorio de Desarrollo Económico — sitio en un solo componente (estilos incluidos).
 // Paleta negro, gris y blanco. Fondo animado: una red de partículas que se conectan y difunden capacidades (la idea del espacio de productos).
 import React, { useEffect, useRef, useState } from "react";
+import { Analytics } from "@vercel/analytics/react";
 import {
   ArrowDown, ArrowRight, ArrowUp, ArrowUpRight, BrainCircuit, Check, Cpu, FlaskConical, Lightbulb, Mail, Menu, Network, Orbit, Plus, Sparkles, Telescope, X,
 } from "lucide-react";
@@ -722,7 +723,7 @@ function Privacidad() {
         </ul>
 
         <h2>Cookies</h2>
-        <p>Usamos solo cookies necesarias para el funcionamiento: <code>tape_sesion</code> (tu sesión, 30 días), <code>tape_anon</code> (el contador de preguntas sin cuenta) y <code>tape_google</code> (temporal, unos minutos, mientras ingresás con Google). No usamos cookies de publicidad ni de seguimiento.</p>
+        <p>Para saber cuántas personas visitan el sitio usamos Vercel Web Analytics, que mide visitas de forma anónima y sin cookies. Además, usamos solo cookies necesarias para el funcionamiento: <code>tape_sesion</code> (tu sesión, 30 días), <code>tape_anon</code> (el contador de preguntas sin cuenta) y <code>tape_google</code> (temporal, unos minutos, mientras ingresás con Google). No usamos cookies de publicidad ni de seguimiento.</p>
 
         <h2>Cuánto tiempo los conservamos</h2>
         <p>Mientras tengas una cuenta. Podés borrar tu historial desde TAPE en cualquier momento («Borrar historial»). Si querés que borremos tu cuenta y todos tus datos, escribinos y lo hacemos.</p>
@@ -739,5 +740,5 @@ function Privacidad() {
 
 export default function App() {
   const ruta = typeof window !== "undefined" ? window.location.pathname.replace(/\/+$/, "") : "";
-  return ruta === "/privacidad" ? <Privacidad /> : <Sitio />;
+  return <>{ruta === "/privacidad" ? <Privacidad /> : <Sitio />}<Analytics /></>;
 }
