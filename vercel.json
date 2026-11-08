@@ -4,6 +4,8 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
+    { "source": "/privacidad", "destination": "/index.html" },
+    { "source": "/privacidad/", "destination": "/index.html" },
     { "source": "/tape", "destination": "https://tape-saas.vercel.app/tape/" },
     { "source": "/tape/", "destination": "https://tape-saas.vercel.app/tape/" },
     { "source": "/tape/:ruta*", "destination": "https://tape-saas.vercel.app/tape/:ruta*" }

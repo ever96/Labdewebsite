@@ -251,6 +251,16 @@ button { font: inherit; color: inherit; }
 .l-pie nav { display: flex; gap: 18px; flex-wrap: wrap; } .l-pie nav a:hover { color: var(--blanco); }
 .l-arriba { width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,.2); background: none; color: var(--blanco); display: grid; place-items: center; cursor: pointer; }
 
+/* Privacidad */
+.l-legal { max-width: 760px; margin: 0 auto; padding: 120px 24px 80px; color: var(--tinta); }
+.l-legal h1 { font-size: clamp(34px, 5vw, 52px); letter-spacing: -.04em; line-height: 1.05; margin: 18px 0 8px; font-weight: 600; }
+.l-legal .l-fecha { color: var(--gris); font-size: 14px; margin: 0 0 36px; }
+.l-legal h2 { font-size: 20px; letter-spacing: -.01em; margin: 36px 0 10px; font-weight: 600; }
+.l-legal p, .l-legal li { font-size: 16px; line-height: 1.7; color: #333; }
+.l-legal ul { padding-left: 20px; margin: 8px 0; } .l-legal li { margin: 4px 0; }
+.l-legal a { text-decoration: underline; }
+.l-legal code { font-size: 14px; background: var(--suave); padding: 1px 6px; border-radius: 6px; }
+
 /* Aparición al bajar */
 .l-rev { opacity: 0; transform: translateY(26px); transition: opacity .9s cubic-bezier(.2,.8,.2,1), transform .9s cubic-bezier(.2,.8,.2,1); }
 .l-rev.on { opacity: 1; transform: none; }
@@ -507,7 +517,7 @@ function Marca() {
   return <a className="l-marca" href="#inicio" aria-label="LabDE, inicio"><i><b>DE</b></i>LabDE</a>;
 }
 
-export default function App() {
+function Sitio() {
   // La cabecera toma el tono de la sección que tiene debajo: transparente sobre la portada, oscura sobre secciones negras, clara sobre las blancas.
   const [tono, setTono] = useState("portada");
   const [menu, setMenu] = useState(false);
@@ -671,10 +681,63 @@ export default function App() {
         <div className="l-cont">
           <Marca />
           <nav aria-label="Pie de página">{nav.map(([t, h]) => <a key={h} href={h}>{t}</a>)}</nav>
-          <span>© {new Date().getFullYear()} LabDE · Desde Paraguay</span>
+          <span>© {new Date().getFullYear()} LabDE · Desde Paraguay · <a href="/privacidad">Privacidad</a></span>
           <button className="l-arriba" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} aria-label="Volver arriba"><ArrowUp size={17} /></button>
         </div>
       </footer>
     </>
   );
+}
+
+// ---------- Política de privacidad (/privacidad) ----------
+function Privacidad() {
+  useEffect(() => { document.title = "Privacidad · LabDE"; window.scrollTo(0, 0); }, []);
+  return (
+    <>
+      <style>{css}</style>
+      <header className="l-cab clara"><div className="l-cont"><a className="l-marca" href="/" aria-label="LabDE, inicio"><i><b>DE</b></i>LabDE</a><a className="l-cta" href={TAPE_URL} style={{ marginLeft: "auto" }}>Probar TAPE <ArrowUpRight size={15} /></a></div></header>
+      <main className="l-legal">
+        <div className="l-etq">Privacidad</div>
+        <h1>Política de privacidad</h1>
+        <p className="l-fecha">Laboratorio de Desarrollo Económico (LabDE) · Paraguay · Última actualización: 8 de noviembre de 2026</p>
+        <p>Esta política explica qué datos recoge TAPE, el asistente del LabDE en <a href="/tape/">labdesarrollo.lat/tape</a>, para qué los usa y cómo podés pedir que se borren.</p>
+
+        <h2>Qué datos guardamos</h2>
+        <ul>
+          <li><b>Sin cuenta:</b> un identificador anónimo en una cookie, para contar las preguntas gratis, y un resumen cifrado de tu dirección IP por día, para evitar abusos. No guardamos tus conversaciones en nuestros servidores: quedan en tu navegador.</li>
+          <li><b>Con cuenta:</b> tu nombre, tu correo, para qué usás TAPE, tu organización si la indicás, la cantidad de preguntas y las conversaciones que guardás.</li>
+          <li><b>Contraseñas:</b> se guardan cifradas con un algoritmo de un solo sentido; nadie del LabDE puede leerlas.</li>
+          <li><b>Ingreso con Google:</b> Google nos comparte tu nombre, tu correo y un identificador de tu cuenta de Google. No accedemos a tu Gmail, tus archivos, tus contactos ni a ningún otro dato de Google.</li>
+        </ul>
+
+        <h2>Para qué los usamos</h2>
+        <p>Para que puedas usar TAPE: identificarte, guardar tus conversaciones, aplicar el límite de preguntas sin cuenta y responder lo que preguntás. No vendemos ni compartimos tus datos personales con fines comerciales y no los usamos para publicidad.</p>
+
+        <h2>Con quién se procesan</h2>
+        <ul>
+          <li><b>Vercel</b>, que aloja el sitio y la aplicación.</li>
+          <li><b>Neon</b>, que aloja la base de datos de cuentas y conversaciones.</li>
+          <li><b>Groq</b>, que procesa el texto de tus preguntas para redactar las respuestas cuando la inteligencia artificial está activada. No le enviamos tu nombre ni tu correo.</li>
+          <li><b>Google</b>, solo si elegís ingresar con tu cuenta de Google.</li>
+        </ul>
+
+        <h2>Cookies</h2>
+        <p>Usamos solo cookies necesarias para el funcionamiento: <code>tape_sesion</code> (tu sesión, 30 días), <code>tape_anon</code> (el contador de preguntas sin cuenta) y <code>tape_google</code> (temporal, unos minutos, mientras ingresás con Google). No usamos cookies de publicidad ni de seguimiento.</p>
+
+        <h2>Cuánto tiempo los conservamos</h2>
+        <p>Mientras tengas una cuenta. Podés borrar tu historial desde TAPE en cualquier momento («Borrar historial»). Si querés que borremos tu cuenta y todos tus datos, escribinos y lo hacemos.</p>
+
+        <h2>Tus derechos y contacto</h2>
+        <p>Podés pedir ver, corregir o borrar tus datos escribiendo a <a href={`mailto:${CONTACTO}`}>{CONTACTO}</a>. Respondemos a la brevedad.</p>
+
+        <h2>Cambios</h2>
+        <p>Si cambiamos esta política, actualizaremos la fecha de arriba. Si el cambio es importante, lo avisaremos en TAPE.</p>
+      </main>
+    </>
+  );
+}
+
+export default function App() {
+  const ruta = typeof window !== "undefined" ? window.location.pathname.replace(/\/+$/, "") : "";
+  return ruta === "/privacidad" ? <Privacidad /> : <Sitio />;
 }
