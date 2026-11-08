@@ -14,4 +14,4 @@ El sitio se publica en `www.labdesarrollo.lat`. TAPE (repo `tape-saas`, proyecto
 
 En desarrollo, «Probar TAPE» apunta a `http://127.0.0.1:5173/` (o a `VITE_TAPE_URL`).
 
-Antes de publicar: reemplazar los correos de contacto en la constante `CONTACTO` de `src/App.jsx`.
+Correo de contacto: labdepy@gmail.com (constante `CONTACTO` de `src/App.jsx`).

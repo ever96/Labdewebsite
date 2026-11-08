@@ -8,7 +8,7 @@ import {
 // TAPE: en producción vive en el mismo dominio, en /tape (vercel.json la trae del proyecto tape-saas); en desarrollo, en el puerto 5173.
 const TAPE_URL = import.meta.env.VITE_TAPE_URL || (import.meta.env.PROD ? "/tape/" : "http://127.0.0.1:5173/");
 // Reemplazar por las direcciones oficiales antes de publicar.
-const CONTACTO = { general: "hola@labde.org", investigacion: "investigacion@labde.org" };
+const CONTACTO = "labdepy@gmail.com";
 
 const COMO = [
   { icono: Network, titulo: "Complejidad", texto: "Vemos la economía como una red de capacidades: qué sabe hacer cada lugar y qué tiene cerca de poder hacer." },
@@ -607,8 +607,8 @@ export default function App() {
             <Rev><div className="l-etq">Contacto</div><h2>Toda herramienta empieza <span>con una pregunta.</span></h2></Rev>
             <Rev d={2}>
               <div className="l-enlaces">
-                <a href={`mailto:${CONTACTO.general}`}><span><Mail size={18} />Escribinos</span><small>{CONTACTO.general}</small></a>
-                <a href={`mailto:${CONTACTO.investigacion}`}><span><Orbit size={18} />Investigar juntos</span><small>{CONTACTO.investigacion}</small></a>
+                <a href={`mailto:${CONTACTO}`}><span><Mail size={18} />Escribinos</span><small>{CONTACTO}</small></a>
+                <a href={`mailto:${CONTACTO}?subject=${encodeURIComponent("Investigar juntos")}`}><span><Orbit size={18} />Investigar juntos</span><small>Proponer un tema</small></a>
                 <a href={TAPE_URL}><span><Sparkles size={18} />Probar TAPE</span><ArrowUpRight size={18} /></a>
               </div>
             </Rev>
